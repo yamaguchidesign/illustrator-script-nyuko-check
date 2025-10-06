@@ -1052,6 +1052,114 @@ var checkModules = {
         }
     },
 
+    // 線幅チェック機能
+    strokeWidthCheck: {
+        // UI要素
+        createUI: function (parent) {
+            var group = parent.add("group");
+            group.orientation = "column";
+            group.alignChildren = ["left", "top"];
+            group.spacing = 10;
+
+            // メインラベルとカウント
+            var countGroup = group.add("group");
+            countGroup.orientation = "row";
+            countGroup.alignChildren = ["left", "center"];
+            countGroup.spacing = 0;
+
+            this.checkMark = createCheckMark(countGroup, true);
+            this.label = countGroup.add("statictext", undefined, "0.1mm以下の線幅の線：");
+            this.countText = countGroup.add("statictext", undefined, "");
+            this.countText.characters = 10;
+
+            // 赤色のペンと黒色のペンを作成
+            this.redPen = this.countText.graphics.newPen(this.countText.graphics.PenType.SOLID_COLOR, [1, 0, 0, 1], 1);
+            this.blackPen = this.countText.graphics.newPen(this.countText.graphics.PenType.SOLID_COLOR, [0, 0, 0, 1], 1);
+
+            // 詳細表示用のグループ
+            var detailGroup = group.add("group");
+            detailGroup.orientation = "column";
+            detailGroup.alignChildren = ["left", "top"];
+            detailGroup.spacing = 2;
+            detailGroup.margins = [16, 0, 0, 0];
+
+            this.detailText = detailGroup.add("statictext", undefined, "");
+            this.detailText.characters = 50;
+            // フォントサイズを小さく、不透明度を70%に
+            this.detailText.graphics.font = ScriptUI.newFont(this.detailText.graphics.font.name, "REGULAR", 10);
+            this.detailText.graphics.foregroundColor = this.detailText.graphics.newPen(this.detailText.graphics.PenType.SOLID_COLOR, [0, 0, 0, 0.7], 1);
+        },
+
+        // チェック実行
+        check: function () {
+            var result = this.checkStrokeWidth();
+            this.countText.text = result.count + "個";
+            if (result.count > 0) {
+                this.checkMark.text = "✗";
+                this.countText.graphics.foregroundColor = this.redPen;
+                this.detailText.text = result.details.join(", ");
+            } else {
+                this.checkMark.text = "✓";
+                this.countText.graphics.foregroundColor = this.blackPen;
+                this.detailText.text = "";
+            }
+        },
+
+        // 線幅をチェックする処理
+        checkStrokeWidth: function () {
+            var doc = app.activeDocument;
+            var thinStrokes = [];
+            var minWidthPt = 0.28; // 0.1mm = 約0.28pt
+
+            function checkItems(container) {
+                for (var i = 0; i < container.pageItems.length; i++) {
+                    var item = container.pageItems[i];
+
+                    // 線幅チェック
+                    if (item.stroked && item.strokeWidth < minWidthPt) {
+                        var strokeWidth = Math.round(item.strokeWidth * 100) / 100; // 小数点第2位まで
+                        var itemName = item.name || "無名のオブジェクト";
+                        thinStrokes.push(itemName + "（" + strokeWidth + "pt）");
+                    }
+
+                    // グループ内のアイテムをチェック
+                    if (item.typename === "GroupItem") {
+                        checkItems(item);
+                    }
+                }
+            }
+
+            // すべてのレイヤーのアイテムをチェック
+            for (var i = 0; i < doc.layers.length; i++) {
+                var layer = doc.layers[i];
+                if (!layer.locked && layer.visible) {
+                    checkItems(layer);
+                }
+            }
+
+            return {
+                count: thinStrokes.length,
+                details: thinStrokes
+            };
+        },
+
+        updateUI: function (results) {
+            var count = results.thinStrokes ? results.thinStrokes.length : 0;
+            this.countText.text = count + "個";
+            this.checkMark.text = count === 0 ? "✓" : "✗";
+            var penColor = count === 0 ? [0, 0.8, 0, 1] : [1, 0, 0, 1];
+            this.checkMark.graphics.foregroundColor = this.checkMark.graphics.newPen(this.checkMark.graphics.PenType.SOLID_COLOR, penColor, 1);
+
+            if (count > 0) {
+                this.countText.graphics.foregroundColor = this.redPen;
+                this.detailText.text = results.thinStrokes.join(", ");
+            } else {
+                this.countText.graphics.foregroundColor = this.blackPen;
+                this.detailText.text = "";
+            }
+        }
+    },
+
     // 画像解像度チェック機能
     imageResolutionCheck: {
         // UI要素
@@ -1170,6 +1278,7 @@ var checkModules = {
 var moduleOrder = [
     "artboardDecimal",
     "cmykDecimalCheck",
+    "strokeWidthCheck",
     "lockHideCheck",
     "fontCheck",
     "imageResolutionCheck",
@@ -1233,7 +1342,8 @@ function scanDocument(progress) {
         noFillCount: 0,
         emptyTextCount: 0,
         artboardDecimals: [],
-        lowResImages: []     // 300dpi以下の画像リスト
+        lowResImages: [],    // 300dpi以下の画像リスト
+        thinStrokes: []      // 0.1mm以下の線幅の線リスト
     };
 
     // 進捗状況を計算するための総ステップ数
@@ -1321,6 +1431,13 @@ function scanDocument(progress) {
         }
         if (item.stroked) {
             checkColor(item.strokeColor);
+            // 線幅チェック
+            var minWidthPt = 0.28; // 0.1mm = 約0.28pt
+            if (item.strokeWidth < minWidthPt) {
+                var strokeWidth = Math.round(item.strokeWidth * 100) / 100; // 小数点第2位まで
+                var itemName = item.name || "無名のオブジェクト";
+                results.thinStrokes.push(itemName + "（" + strokeWidth + "pt）");
+            }
         }
 
         // 画像解像度チェック
@@ -1382,6 +1499,13 @@ function scanDocument(progress) {
         }
         if (item.stroked) {
             checkColor(item.strokeColor);
+            // 線幅チェック
+            var minWidthPt = 0.28; // 0.1mm = 約0.28pt
+            if (item.strokeWidth < minWidthPt) {
+                var strokeWidth = Math.round(item.strokeWidth * 100) / 100; // 小数点第2位まで
+                var itemName = item.name || "無名のオブジェクト";
+                results.thinStrokes.push(itemName + "（" + strokeWidth + "pt）");
+            }
         }
 
         // 画像解像度チェック
