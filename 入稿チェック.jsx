@@ -1068,7 +1068,7 @@ var checkModules = {
             countGroup.spacing = 0;
 
             this.checkMark = createCheckMark(countGroup, true);
-            this.label = countGroup.add("statictext", undefined, "0.1mm以下の線幅の線：");
+            this.label = countGroup.add("statictext", undefined, "0.1mmより小さい線幅の線：");
             this.countText = countGroup.add("statictext", undefined, "");
             this.countText.characters = 10;
 
@@ -1153,6 +1153,113 @@ var checkModules = {
             if (count > 0) {
                 this.countText.graphics.foregroundColor = this.redPen;
                 this.detailText.text = results.thinStrokes.join(", ");
+            } else {
+                this.countText.graphics.foregroundColor = this.blackPen;
+                this.detailText.text = "";
+            }
+        }
+    },
+
+    // RGBリンク画像チェック機能
+    rgbLinkedImageCheck: {
+        // UI要素
+        createUI: function (parent) {
+            var group = parent.add("group");
+            group.orientation = "column";
+            group.alignChildren = ["left", "top"];
+            group.spacing = 10;
+
+            // メインラベルとカウント
+            var countGroup = group.add("group");
+            countGroup.orientation = "row";
+            countGroup.alignChildren = ["left", "center"];
+            countGroup.spacing = 0;
+
+            this.checkMark = createCheckMark(countGroup, true);
+            this.label = countGroup.add("statictext", undefined, "RGBリンク画像：");
+            this.countText = countGroup.add("statictext", undefined, "");
+            this.countText.characters = 10;
+
+            // 赤色のペンと黒色のペンを作成
+            this.redPen = this.countText.graphics.newPen(this.countText.graphics.PenType.SOLID_COLOR, [1, 0, 0, 1], 1);
+            this.blackPen = this.countText.graphics.newPen(this.countText.graphics.PenType.SOLID_COLOR, [0, 0, 0, 1], 1);
+
+            // 詳細表示用のグループ
+            var detailGroup = group.add("group");
+            detailGroup.orientation = "column";
+            detailGroup.alignChildren = ["left", "top"];
+            detailGroup.spacing = 2;
+            detailGroup.margins = [16, 0, 0, 0];
+
+            this.detailText = detailGroup.add("statictext", undefined, "");
+            this.detailText.characters = 50;
+            // フォントサイズを小さく、不透明度を70%に
+            this.detailText.graphics.font = ScriptUI.newFont(this.detailText.graphics.font.name, "REGULAR", 10);
+            this.detailText.graphics.foregroundColor = this.detailText.graphics.newPen(this.detailText.graphics.PenType.SOLID_COLOR, [0, 0, 0, 0.7], 1);
+        },
+
+        // チェック実行
+        check: function () {
+            var result = this.checkLinkedRGBImages();
+            this.countText.text = result.count + "個";
+            if (result.count > 0) {
+                this.checkMark.text = "✗";
+                this.countText.graphics.foregroundColor = this.redPen;
+                this.detailText.text = result.details.join(", ");
+            } else {
+                this.checkMark.text = "✓";
+                this.countText.graphics.foregroundColor = this.blackPen;
+                this.detailText.text = "";
+            }
+        },
+
+        // RGBリンク画像をチェックする処理
+        checkLinkedRGBImages: function () {
+            var doc = app.activeDocument;
+            var rgbImages = [];
+
+            try {
+                // すべてのリンクされた画像をチェック
+                for (var i = 0; i < doc.placedItems.length; i++) {
+                    var placedItem = doc.placedItems[i];
+
+                    if (placedItem.file && placedItem.file.exists) {
+                        try {
+                            // ファイルを開いてカラーモードを確認
+                            var tempDoc = app.open(placedItem.file);
+                            var colorSpace = tempDoc.documentColorSpace;
+                            tempDoc.close(SaveOptions.DONOTSAVECHANGES);
+
+                            if (colorSpace === DocumentColorSpace.RGB) {
+                                var fileName = placedItem.file.name;
+                                rgbImages.push(fileName);
+                            }
+                        } catch (e) {
+                            // ファイルを開けない場合はスキップ
+                            $.writeln("RGB画像チェックエラー: " + e.message);
+                        }
+                    }
+                }
+            } catch (e) {
+                $.writeln("RGBリンク画像チェックエラー: " + e.message);
+            }
+
+            return {
+                count: rgbImages.length,
+                details: rgbImages
+            };
+        },
+
+        updateUI: function (results) {
+            var count = results.rgbLinkedImages ? results.rgbLinkedImages.length : 0;
+            this.countText.text = count + "個";
+            this.checkMark.text = count === 0 ? "✓" : "✗";
+            var penColor = count === 0 ? [0, 0.8, 0, 1] : [1, 0, 0, 1];
+            this.checkMark.graphics.foregroundColor = this.checkMark.graphics.newPen(this.checkMark.graphics.PenType.SOLID_COLOR, penColor, 1);
+
+            if (count > 0) {
+                this.countText.graphics.foregroundColor = this.redPen;
+                this.detailText.text = results.rgbLinkedImages.join(", ");
             } else {
                 this.countText.graphics.foregroundColor = this.blackPen;
                 this.detailText.text = "";
@@ -1279,6 +1386,7 @@ var moduleOrder = [
     "artboardDecimal",
     "cmykDecimalCheck",
     "strokeWidthCheck",
+    "rgbLinkedImageCheck",
     "lockHideCheck",
     "fontCheck",
     "imageResolutionCheck",
@@ -1343,7 +1451,8 @@ function scanDocument(progress) {
         emptyTextCount: 0,
         artboardDecimals: [],
         lowResImages: [],    // 300dpi以下の画像リスト
-        thinStrokes: []      // 0.1mm以下の線幅の線リスト
+        thinStrokes: [],     // 0.1mm以下の線幅の線リスト
+        rgbLinkedImages: []  // RGBリンク画像リスト
     };
 
     // 進捗状況を計算するための総ステップ数
@@ -1540,6 +1649,44 @@ function scanDocument(progress) {
                 results.cmykDecimals[formatCMYKValue(color)] = true;
             }
         }
+    }
+
+    // RGBリンク画像チェック
+    try {
+        // 元のアクティブドキュメントを保存
+        var originalDoc = app.activeDocument;
+
+        for (var i = 0; i < doc.placedItems.length; i++) {
+            var placedItem = doc.placedItems[i];
+
+            if (placedItem.file && placedItem.file.exists) {
+                try {
+                    // ファイルを開いてカラーモードを確認
+                    var tempDoc = app.open(placedItem.file);
+                    var colorSpace = tempDoc.documentColorSpace;
+                    tempDoc.close(SaveOptions.DONOTSAVECHANGES);
+
+                    // 元のドキュメントに戻す
+                    originalDoc.activate();
+
+                    if (colorSpace === DocumentColorSpace.RGB) {
+                        var fileName = placedItem.file.name;
+                        results.rgbLinkedImages.push(fileName);
+                    }
+                } catch (e) {
+                    // ファイルを開けない場合はスキップ
+                    $.writeln("RGB画像チェックエラー: " + e.message);
+                    // エラー時も元のドキュメントに戻す
+                    try {
+                        originalDoc.activate();
+                    } catch (activateError) {
+                        // アクティベートエラーは無視
+                    }
+                }
+            }
+        }
+    } catch (e) {
+        $.writeln("RGBリンク画像チェックエラー: " + e.message);
     }
 
     // レイヤーをスキャン
