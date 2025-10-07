@@ -88,6 +88,109 @@ function createCheckMark(parent, isCheck) {
 
 // 各チェック機能のモジュール
 var checkModules = {
+    // ドキュメントカラーモードチェック機能
+    documentColorModeCheck: {
+        // UI要素
+        createUI: function (parent) {
+            var group = parent.add("group");
+            group.orientation = "column";
+            group.alignChildren = ["left", "top"];
+            group.spacing = 10;
+
+            // メインラベルとカウント
+            var countGroup = group.add("group");
+            countGroup.orientation = "row";
+            countGroup.alignChildren = ["left", "center"];
+            countGroup.spacing = 0;
+
+            this.checkMark = createCheckMark(countGroup, true);
+            this.label = countGroup.add("statictext", undefined, "ドキュメントカラーモード：");
+            this.countText = countGroup.add("statictext", undefined, "");
+            this.countText.characters = 15;
+
+            // 赤色のペンと黒色のペンを作成
+            this.redPen = this.countText.graphics.newPen(this.countText.graphics.PenType.SOLID_COLOR, [1, 0, 0, 1], 1);
+            this.blackPen = this.countText.graphics.newPen(this.countText.graphics.PenType.SOLID_COLOR, [0, 0, 0, 1], 1);
+
+            // 詳細表示用のグループ
+            var detailGroup = group.add("group");
+            detailGroup.orientation = "column";
+            detailGroup.alignChildren = ["left", "top"];
+            detailGroup.spacing = 2;
+            detailGroup.margins = [16, 0, 0, 0];
+
+            this.detailText = detailGroup.add("statictext", undefined, "");
+            this.detailText.characters = 50;
+            // フォントサイズを小さく、不透明度を70%に
+            this.detailText.graphics.font = ScriptUI.newFont(this.detailText.graphics.font.name, "REGULAR", 10);
+            this.detailText.graphics.foregroundColor = this.detailText.graphics.newPen(this.detailText.graphics.PenType.SOLID_COLOR, [0, 0, 0, 0.7], 1);
+        },
+
+        // チェック実行
+        check: function () {
+            var result = this.checkDocumentColorMode();
+            this.countText.text = result.mode;
+            if (result.isCMYK) {
+                this.checkMark.text = "✓";
+                this.countText.graphics.foregroundColor = this.blackPen;
+                this.detailText.text = "";
+            } else {
+                this.checkMark.text = "✗";
+                this.countText.graphics.foregroundColor = this.redPen;
+                this.detailText.text = "印刷にはCMYKモードを推奨します";
+            }
+        },
+
+        // ドキュメントカラーモードをチェックする処理
+        checkDocumentColorMode: function () {
+            var doc = app.activeDocument;
+            var colorSpace = doc.documentColorSpace;
+
+            var mode = "";
+            var isCMYK = false;
+
+            switch (colorSpace) {
+                case DocumentColorSpace.CMYK:
+                    mode = "CMYK";
+                    isCMYK = true;
+                    break;
+                case DocumentColorSpace.RGB:
+                    mode = "RGB";
+                    isCMYK = false;
+                    break;
+                case DocumentColorSpace.GRAY:
+                    mode = "グレースケール";
+                    isCMYK = false;
+                    break;
+                default:
+                    mode = "その他";
+                    isCMYK = false;
+                    break;
+            }
+
+            return {
+                mode: mode,
+                isCMYK: isCMYK
+            };
+        },
+
+        updateUI: function (results) {
+            var isCMYK = results.documentColorMode === "CMYK";
+            this.countText.text = results.documentColorMode || "不明";
+            this.checkMark.text = isCMYK ? "✓" : "✗";
+            var penColor = isCMYK ? [0, 0.8, 0, 1] : [1, 0, 0, 1];
+            this.checkMark.graphics.foregroundColor = this.checkMark.graphics.newPen(this.checkMark.graphics.PenType.SOLID_COLOR, penColor, 1);
+
+            if (isCMYK) {
+                this.countText.graphics.foregroundColor = this.blackPen;
+                this.detailText.text = "";
+            } else {
+                this.countText.graphics.foregroundColor = this.redPen;
+                this.detailText.text = "印刷にはCMYKモードを推奨します";
+            }
+        }
+    },
+
     // アートボードの小数点チェック機能
     artboardDecimal: {
         // UI要素
@@ -1383,6 +1486,7 @@ var checkModules = {
 };
 
 var moduleOrder = [
+    "documentColorModeCheck",
     "artboardDecimal",
     "cmykDecimalCheck",
     "strokeWidthCheck",
@@ -1452,8 +1556,26 @@ function scanDocument(progress) {
         artboardDecimals: [],
         lowResImages: [],    // 300dpi以下の画像リスト
         thinStrokes: [],     // 0.1mm以下の線幅の線リスト
-        rgbLinkedImages: []  // RGBリンク画像リスト
+        rgbLinkedImages: [], // RGBリンク画像リスト
+        documentColorMode: "" // ドキュメントカラーモード
     };
+
+    // ドキュメントカラーモードチェック
+    var colorSpace = doc.documentColorSpace;
+    switch (colorSpace) {
+        case DocumentColorSpace.CMYK:
+            results.documentColorMode = "CMYK";
+            break;
+        case DocumentColorSpace.RGB:
+            results.documentColorMode = "RGB";
+            break;
+        case DocumentColorSpace.GRAY:
+            results.documentColorMode = "グレースケール";
+            break;
+        default:
+            results.documentColorMode = "その他";
+            break;
+    }
 
     // 進捗状況を計算するための総ステップ数
     var totalSteps = doc.artboards.length + doc.layers.length;
