@@ -108,9 +108,9 @@ var checkModules = {
             this.countText = countGroup.add("statictext", undefined, "");
             this.countText.characters = 15;
 
-            // 赤色のペンと黒色のペンを作成
+            // 赤色のペンと緑色のペンを作成
             this.redPen = this.countText.graphics.newPen(this.countText.graphics.PenType.SOLID_COLOR, [1, 0, 0, 1], 1);
-            this.blackPen = this.countText.graphics.newPen(this.countText.graphics.PenType.SOLID_COLOR, [0, 0, 0, 1], 1);
+            this.greenPen = this.countText.graphics.newPen(this.countText.graphics.PenType.SOLID_COLOR, [0, 0.8, 0, 1], 1);
 
             // 詳細表示用のグループ
             var detailGroup = group.add("group");
@@ -132,7 +132,7 @@ var checkModules = {
             this.countText.text = result.mode;
             if (result.isCMYK) {
                 this.checkMark.text = "✓";
-                this.countText.graphics.foregroundColor = this.blackPen;
+                this.countText.graphics.foregroundColor = this.greenPen;
                 this.detailText.text = "";
             } else {
                 this.checkMark.text = "✗";
@@ -182,7 +182,7 @@ var checkModules = {
             this.checkMark.graphics.foregroundColor = this.checkMark.graphics.newPen(this.checkMark.graphics.PenType.SOLID_COLOR, penColor, 1);
 
             if (isCMYK) {
-                this.countText.graphics.foregroundColor = this.blackPen;
+                this.countText.graphics.foregroundColor = this.greenPen;
                 this.detailText.text = "";
             } else {
                 this.countText.graphics.foregroundColor = this.redPen;
@@ -505,9 +505,9 @@ var checkModules = {
             this.countText = countGroup.add("statictext", undefined, "");
             this.countText.characters = 10;
 
-            // 赤色のペンと黒色のペンを作成
+            // 赤色のペンと緑色のペンを作成
             this.redPen = this.countText.graphics.newPen(this.countText.graphics.PenType.SOLID_COLOR, [1, 0, 0, 1], 1);
-            this.blackPen = this.countText.graphics.newPen(this.countText.graphics.PenType.SOLID_COLOR, [0, 0, 0, 1], 1);
+            this.greenPen = this.countText.graphics.newPen(this.countText.graphics.PenType.SOLID_COLOR, [0, 0.8, 0, 1], 1);
 
             // 詳細表示用のグループ
             var detailGroup = group.add("group");
@@ -544,7 +544,7 @@ var checkModules = {
                 this.detailText.text = result.details.join(", ");
             } else {
                 this.checkMark.text = "✓";
-                this.countText.graphics.foregroundColor = this.blackPen;
+                this.countText.graphics.foregroundColor = this.greenPen;
                 this.detailText.text = "";
             }
         },
@@ -717,7 +717,7 @@ var checkModules = {
                 this.countText.graphics.foregroundColor = this.redPen;
                 this.detailText.text = details.join(", ");
             } else {
-                this.countText.graphics.foregroundColor = this.blackPen;
+                this.countText.graphics.foregroundColor = this.greenPen;
                 this.detailText.text = "";
             }
         }
@@ -742,9 +742,9 @@ var checkModules = {
             this.label = lockGroup.add("statictext", undefined, "ロックされているオブジェクト：");
             this.countText = lockGroup.add("statictext", undefined, "");
             this.countText.characters = 10;
-            // 赤色のペンと黒色のペンを作成
+            // 赤色のペンと緑色のペンを作成
             this.redPen = this.countText.graphics.newPen(this.countText.graphics.PenType.SOLID_COLOR, [1, 0, 0, 1], 1);
-            this.blackPen = this.countText.graphics.newPen(this.countText.graphics.PenType.SOLID_COLOR, [0, 0, 0, 1], 1);
+            this.greenPen = this.countText.graphics.newPen(this.countText.graphics.PenType.SOLID_COLOR, [0, 0.8, 0, 1], 1);
 
             // 非表示オブジェクト
             var hideGroup = group.add("group");
@@ -786,7 +786,7 @@ var checkModules = {
                 this.countText.graphics.foregroundColor = this.redPen;
             } else {
                 this.checkMark.text = "✓";
-                this.countText.graphics.foregroundColor = this.blackPen;
+                this.countText.graphics.foregroundColor = this.greenPen;
             }
 
             if (counts.hidden > 0) {
@@ -794,7 +794,7 @@ var checkModules = {
                 this.hideText.graphics.foregroundColor = this.redPen;
             } else {
                 this.hideCheckMark.text = "✓";
-                this.hideText.graphics.foregroundColor = this.blackPen;
+                this.hideText.graphics.foregroundColor = this.greenPen;
             }
         },
 
@@ -848,7 +848,7 @@ var checkModules = {
                 this.countText.graphics.foregroundColor = this.redPen;
             } else {
                 this.checkMark.text = "✓";
-                this.countText.graphics.foregroundColor = this.blackPen;
+                this.countText.graphics.foregroundColor = this.greenPen;
             }
 
             if (results.hiddenCount > 0) {
@@ -856,7 +856,7 @@ var checkModules = {
                 this.hideText.graphics.foregroundColor = this.redPen;
             } else {
                 this.hideCheckMark.text = "✓";
-                this.hideText.graphics.foregroundColor = this.blackPen;
+                this.hideText.graphics.foregroundColor = this.greenPen;
             }
         }
     },
@@ -880,9 +880,9 @@ var checkModules = {
             this.label = countGroup.add("statictext", undefined, "使用フォント数：");
             this.countText = countGroup.add("statictext", undefined, "");
             this.countText.characters = 10;
-            // 赤色のペンと黒色のペンを作成
+            // 赤色のペンと緑色のペンを作成
             this.redPen = this.countText.graphics.newPen(this.countText.graphics.PenType.SOLID_COLOR, [1, 0, 0, 1], 1);
-            this.blackPen = this.countText.graphics.newPen(this.countText.graphics.PenType.SOLID_COLOR, [0, 0, 0, 1], 1);
+            this.greenPen = this.countText.graphics.newPen(this.countText.graphics.PenType.SOLID_COLOR, [0, 0.8, 0, 1], 1);
 
             // フォント名表示用のグループ
             var detailGroup = group.add("group");
@@ -908,7 +908,7 @@ var checkModules = {
                 this.detailText.text = result.fontNames.join(", ");
             } else {
                 this.checkMark.text = "✓";
-                this.countText.graphics.foregroundColor = this.blackPen;
+                this.countText.graphics.foregroundColor = this.greenPen;
                 this.detailText.text = "";
             }
         },
@@ -979,7 +979,7 @@ var checkModules = {
                 this.detailText.text = fontNames.join(", ");
             } else {
                 this.checkMark.text = "✓";
-                this.countText.graphics.foregroundColor = this.blackPen;
+                this.countText.graphics.foregroundColor = this.greenPen;
                 this.detailText.text = "";
             }
         }
@@ -1027,9 +1027,9 @@ var checkModules = {
             this.emptyTextText = emptyTextGroup.add("statictext", undefined, "");
             this.emptyTextText.characters = 10;
 
-            // 赤色のペンと黒色のペンを作成
+            // 赤色のペンと緑色のペンを作成
             this.redPen = this.strayText.graphics.newPen(this.strayText.graphics.PenType.SOLID_COLOR, [1, 0, 0, 1], 1);
-            this.blackPen = this.strayText.graphics.newPen(this.strayText.graphics.PenType.SOLID_COLOR, [0, 0, 0, 1], 1);
+            this.greenPen = this.strayText.graphics.newPen(this.strayText.graphics.PenType.SOLID_COLOR, [0, 0.8, 0, 1], 1);
 
             // 注釈テキスト
             var noteGroup = group.add("group");
@@ -1053,7 +1053,7 @@ var checkModules = {
             if (counts.strayPoints > 0) {
                 this.strayText.graphics.foregroundColor = this.redPen;
             } else {
-                this.strayText.graphics.foregroundColor = this.blackPen;
+                this.strayText.graphics.foregroundColor = this.greenPen;
             }
 
             // 塗りなしオブジェクト
@@ -1062,7 +1062,7 @@ var checkModules = {
             if (counts.noFill > 0) {
                 this.noFillText.graphics.foregroundColor = this.redPen;
             } else {
-                this.noFillText.graphics.foregroundColor = this.blackPen;
+                this.noFillText.graphics.foregroundColor = this.greenPen;
             }
 
             // 空テキストパス
@@ -1071,7 +1071,7 @@ var checkModules = {
             if (counts.emptyText > 0) {
                 this.emptyTextText.graphics.foregroundColor = this.redPen;
             } else {
-                this.emptyTextText.graphics.foregroundColor = this.blackPen;
+                this.emptyTextText.graphics.foregroundColor = this.greenPen;
             }
 
         },
@@ -1137,19 +1137,19 @@ var checkModules = {
             if (results.strayPoints > 0) {
                 this.strayText.graphics.foregroundColor = this.redPen;
             } else {
-                this.strayText.graphics.foregroundColor = this.blackPen;
+                this.strayText.graphics.foregroundColor = this.greenPen;
             }
 
             if (results.noFillCount > 0) {
                 this.noFillText.graphics.foregroundColor = this.redPen;
             } else {
-                this.noFillText.graphics.foregroundColor = this.blackPen;
+                this.noFillText.graphics.foregroundColor = this.greenPen;
             }
 
             if (results.emptyTextCount > 0) {
                 this.emptyTextText.graphics.foregroundColor = this.redPen;
             } else {
-                this.emptyTextText.graphics.foregroundColor = this.blackPen;
+                this.emptyTextText.graphics.foregroundColor = this.greenPen;
             }
 
         }
@@ -1175,9 +1175,9 @@ var checkModules = {
             this.countText = countGroup.add("statictext", undefined, "");
             this.countText.characters = 10;
 
-            // 赤色のペンと黒色のペンを作成
+            // 赤色のペンと緑色のペンを作成
             this.redPen = this.countText.graphics.newPen(this.countText.graphics.PenType.SOLID_COLOR, [1, 0, 0, 1], 1);
-            this.blackPen = this.countText.graphics.newPen(this.countText.graphics.PenType.SOLID_COLOR, [0, 0, 0, 1], 1);
+            this.greenPen = this.countText.graphics.newPen(this.countText.graphics.PenType.SOLID_COLOR, [0, 0.8, 0, 1], 1);
 
             // 詳細表示用のグループ
             var detailGroup = group.add("group");
@@ -1203,7 +1203,7 @@ var checkModules = {
                 this.detailText.text = result.details.join(", ");
             } else {
                 this.checkMark.text = "✓";
-                this.countText.graphics.foregroundColor = this.blackPen;
+                this.countText.graphics.foregroundColor = this.greenPen;
                 this.detailText.text = "";
             }
         },
@@ -1257,7 +1257,7 @@ var checkModules = {
                 this.countText.graphics.foregroundColor = this.redPen;
                 this.detailText.text = results.thinStrokes.join(", ");
             } else {
-                this.countText.graphics.foregroundColor = this.blackPen;
+                this.countText.graphics.foregroundColor = this.greenPen;
                 this.detailText.text = "";
             }
         }
@@ -1283,9 +1283,9 @@ var checkModules = {
             this.countText = countGroup.add("statictext", undefined, "");
             this.countText.characters = 10;
 
-            // 赤色のペンと黒色のペンを作成
+            // 赤色のペンと緑色のペンを作成
             this.redPen = this.countText.graphics.newPen(this.countText.graphics.PenType.SOLID_COLOR, [1, 0, 0, 1], 1);
-            this.blackPen = this.countText.graphics.newPen(this.countText.graphics.PenType.SOLID_COLOR, [0, 0, 0, 1], 1);
+            this.greenPen = this.countText.graphics.newPen(this.countText.graphics.PenType.SOLID_COLOR, [0, 0.8, 0, 1], 1);
 
             // 詳細表示用のグループ
             var detailGroup = group.add("group");
@@ -1311,7 +1311,7 @@ var checkModules = {
                 this.detailText.text = result.details.join(", ");
             } else {
                 this.checkMark.text = "✓";
-                this.countText.graphics.foregroundColor = this.blackPen;
+                this.countText.graphics.foregroundColor = this.greenPen;
                 this.detailText.text = "";
             }
         },
@@ -1364,7 +1364,7 @@ var checkModules = {
                 this.countText.graphics.foregroundColor = this.redPen;
                 this.detailText.text = results.rgbLinkedImages.join(", ");
             } else {
-                this.countText.graphics.foregroundColor = this.blackPen;
+                this.countText.graphics.foregroundColor = this.greenPen;
                 this.detailText.text = "";
             }
         }
@@ -1390,9 +1390,9 @@ var checkModules = {
             this.countText = countGroup.add("statictext", undefined, "");
             this.countText.characters = 10;
 
-            // 赤色のペンと黒色のペンを作成
+            // 赤色のペンと緑色のペンを作成
             this.redPen = this.countText.graphics.newPen(this.countText.graphics.PenType.SOLID_COLOR, [1, 0, 0, 1], 1);
-            this.blackPen = this.countText.graphics.newPen(this.countText.graphics.PenType.SOLID_COLOR, [0, 0, 0, 1], 1);
+            this.greenPen = this.countText.graphics.newPen(this.countText.graphics.PenType.SOLID_COLOR, [0, 0.8, 0, 1], 1);
 
             // 詳細表示用のグループ
             var detailGroup = group.add("group");
@@ -1418,7 +1418,7 @@ var checkModules = {
                 this.detailText.text = result.details.join(", ");
             } else {
                 this.checkMark.text = "✓";
-                this.countText.graphics.foregroundColor = this.blackPen;
+                this.countText.graphics.foregroundColor = this.greenPen;
                 this.detailText.text = "";
             }
         },
@@ -1478,7 +1478,7 @@ var checkModules = {
                 this.countText.graphics.foregroundColor = this.redPen;
                 this.detailText.text = results.lowResImages.join(", ");
             } else {
-                this.countText.graphics.foregroundColor = this.blackPen;
+                this.countText.graphics.foregroundColor = this.greenPen;
                 this.detailText.text = "";
             }
         }
