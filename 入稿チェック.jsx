@@ -86,6 +86,12 @@ function createCheckMark(parent, isCheck) {
     return mark;
 }
 
+// 注釈テキストのスタイル設定を共通化
+function applyNoteStyle(textElement) {
+    textElement.graphics.font = ScriptUI.newFont("dialog", "REGULAR", 9);
+    textElement.graphics.foregroundColor = textElement.graphics.newPen(textElement.graphics.PenType.SOLID_COLOR, [1, 1, 1, 0.3], 1);
+}
+
 // 各チェック機能のモジュール
 var checkModules = {
     // ドキュメントカラーモードチェック機能
@@ -122,7 +128,7 @@ var checkModules = {
             this.detailText = detailGroup.add("statictext", undefined, "");
             this.detailText.characters = 50;
             // フォントサイズを小さく、不透明度を70%に
-            this.detailText.graphics.font = ScriptUI.newFont(this.detailText.graphics.font.name, "REGULAR", 4);
+            this.detailText.graphics.font = ScriptUI.newFont("dialog", "REGULAR", 9);
             this.detailText.graphics.foregroundColor = this.detailText.graphics.newPen(this.detailText.graphics.PenType.SOLID_COLOR, [1, 1, 1, 0.3], 1);
         },
 
@@ -203,7 +209,7 @@ var checkModules = {
             // メインラベルとカウント
             var headerGroup = group.add("group");
             headerGroup.orientation = "row";
-            headerGroup.alignChildren = ["left", "center"];
+            headerGroup.alignChildren = ["left", "top"];
             headerGroup.spacing = 0;  // グループ間のスペースを0に
 
             // チェックマーク用のテキスト
@@ -226,7 +232,7 @@ var checkModules = {
             this.detailText = detailGroup.add("statictext", undefined, "");
             this.detailText.characters = 35;
             // フォントサイズを小さく、不透明度を70%に
-            this.detailText.graphics.font = ScriptUI.newFont(this.detailText.graphics.font.name, "REGULAR", 4);
+            this.detailText.graphics.font = ScriptUI.newFont("dialog", "REGULAR", 9);
             this.detailText.graphics.foregroundColor = this.detailText.graphics.newPen(this.detailText.graphics.PenType.SOLID_COLOR, [1, 1, 1, 0.3], 1);
         },
 
@@ -378,7 +384,7 @@ var checkModules = {
             // フォントサイズを小さく、白色の不透明度を70%に
             note1.graphics.font = ScriptUI.newFont("dialog", "REGULAR", 9);
             note2.graphics.font = ScriptUI.newFont("dialog", "REGULAR", 9);
-            note3.graphics.font = ScriptUI.newFont(note3.graphics.font.name, "REGULAR", 4);
+            note3.graphics.font = ScriptUI.newFont("dialog", "REGULAR", 9);
             note1.graphics.foregroundColor = note1.graphics.newPen(note1.graphics.PenType.SOLID_COLOR, [1, 1, 1, 0.3], 1);
             note2.graphics.foregroundColor = note2.graphics.newPen(note2.graphics.PenType.SOLID_COLOR, [1, 1, 1, 0.3], 1);
             note3.graphics.foregroundColor = note3.graphics.newPen(note3.graphics.PenType.SOLID_COLOR, [1, 1, 1, 0.3], 1);
@@ -521,7 +527,7 @@ var checkModules = {
 
             // RGBモード時のメッセージ
             this.rgbMessage = detailGroup.add("statictext", undefined, "※ RGBモードでは使用できません");
-            this.rgbMessage.graphics.font = ScriptUI.newFont(this.rgbMessage.graphics.font.name, "REGULAR", 4);
+            this.rgbMessage.graphics.font = ScriptUI.newFont("dialog", "REGULAR", 9);
             this.rgbMessage.graphics.foregroundColor = this.rgbMessage.graphics.newPen(this.rgbMessage.graphics.PenType.SOLID_COLOR, [1, 1, 1, 0.3], 1);
             this.rgbMessage.visible = false;
 
@@ -894,7 +900,7 @@ var checkModules = {
             this.detailText = detailGroup.add("statictext", undefined, "");
             this.detailText.characters = 50;
             // フォントサイズを小さく、不透明度を70%に
-            this.detailText.graphics.font = ScriptUI.newFont(this.detailText.graphics.font.name, "REGULAR", 4);
+            this.detailText.graphics.font = ScriptUI.newFont("dialog", "REGULAR", 9);
             this.detailText.graphics.foregroundColor = this.detailText.graphics.newPen(this.detailText.graphics.PenType.SOLID_COLOR, [1, 1, 1, 0.3], 1);
         },
 
@@ -1039,7 +1045,7 @@ var checkModules = {
             noteGroup.margins = [16, 10, 0, 0];
 
             var noteText = noteGroup.add("statictext", undefined, "オブジェクト>パス>パスの削除... で削除");
-            noteText.graphics.font = ScriptUI.newFont(noteText.graphics.font.name, "REGULAR", 4);
+            noteText.graphics.font = ScriptUI.newFont("dialog", "REGULAR", 9);
             noteText.graphics.foregroundColor = noteText.graphics.newPen(noteText.graphics.PenType.SOLID_COLOR, [1, 1, 1, 0.3], 1);
         },
 
@@ -1189,7 +1195,7 @@ var checkModules = {
             this.detailText = detailGroup.add("statictext", undefined, "");
             this.detailText.characters = 50;
             // フォントサイズを小さく、不透明度を70%に
-            this.detailText.graphics.font = ScriptUI.newFont(this.detailText.graphics.font.name, "REGULAR", 4);
+            this.detailText.graphics.font = ScriptUI.newFont("dialog", "REGULAR", 9);
             this.detailText.graphics.foregroundColor = this.detailText.graphics.newPen(this.detailText.graphics.PenType.SOLID_COLOR, [1, 1, 1, 0.3], 1);
         },
 
@@ -1297,7 +1303,7 @@ var checkModules = {
             this.detailText = detailGroup.add("statictext", undefined, "");
             this.detailText.characters = 50;
             // フォントサイズを小さく、不透明度を70%に
-            this.detailText.graphics.font = ScriptUI.newFont(this.detailText.graphics.font.name, "REGULAR", 4);
+            this.detailText.graphics.font = ScriptUI.newFont("dialog", "REGULAR", 9);
             this.detailText.graphics.foregroundColor = this.detailText.graphics.newPen(this.detailText.graphics.PenType.SOLID_COLOR, [1, 1, 1, 0.3], 1);
         },
 
@@ -1404,7 +1410,7 @@ var checkModules = {
             this.detailText = detailGroup.add("statictext", undefined, "");
             this.detailText.characters = 50;
             // フォントサイズを小さく、不透明度を70%に
-            this.detailText.graphics.font = ScriptUI.newFont(this.detailText.graphics.font.name, "REGULAR", 4);
+            this.detailText.graphics.font = ScriptUI.newFont("dialog", "REGULAR", 9);
             this.detailText.graphics.foregroundColor = this.detailText.graphics.newPen(this.detailText.graphics.PenType.SOLID_COLOR, [1, 1, 1, 0.3], 1);
         },
 
