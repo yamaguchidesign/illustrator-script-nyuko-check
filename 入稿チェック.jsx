@@ -1,3 +1,11 @@
+// UI設定の定数
+var UI_CONSTANTS = {
+    NOTE_INDENT: 24,           // 注釈テキストの左インデント
+    NOTE_SPACING: 2,           // 注釈グループ内の行間隔
+    NOTE_FONT_SIZE: 9,         // 注釈テキストのフォントサイズ
+    NOTE_OPACITY: 0.3          // 注釈テキストの不透明度
+};
+
 // 色情報を一意のキーに変換する関数
 function getColorKey(color) {
     if (color.typename === "SpotColor") {
@@ -88,8 +96,28 @@ function createCheckMark(parent, isCheck) {
 
 // 注釈テキストのスタイル設定を共通化
 function applyNoteStyle(textElement) {
-    textElement.graphics.font = ScriptUI.newFont("dialog", "REGULAR", 9);
-    textElement.graphics.foregroundColor = textElement.graphics.newPen(textElement.graphics.PenType.SOLID_COLOR, [1, 1, 1, 0.3], 1);
+    textElement.graphics.font = ScriptUI.newFont("dialog", "REGULAR", UI_CONSTANTS.NOTE_FONT_SIZE);
+    textElement.graphics.foregroundColor = textElement.graphics.newPen(textElement.graphics.PenType.SOLID_COLOR, [1, 1, 1, UI_CONSTANTS.NOTE_OPACITY], 1);
+}
+
+// 赤色と緑色のペンを作成する共通関数
+function createColorPens(textElement) {
+    var redPen = textElement.graphics.newPen(textElement.graphics.PenType.SOLID_COLOR, [1, 0, 0, 1], 1);
+    var greenPen = textElement.graphics.newPen(textElement.graphics.PenType.SOLID_COLOR, [0, 0.8, 0, 1], 1);
+    return {
+        redPen: redPen,
+        greenPen: greenPen
+    };
+}
+
+// 注釈グループを作成する共通関数
+function createNoteGroup(parent) {
+    var noteGroup = parent.add("group");
+    noteGroup.orientation = "column";
+    noteGroup.alignChildren = ["left", "top"];
+    noteGroup.spacing = UI_CONSTANTS.NOTE_SPACING;
+    noteGroup.margins = [UI_CONSTANTS.NOTE_INDENT, 0, 0, 0];
+    return noteGroup;
 }
 
 // 各チェック機能のモジュール
@@ -114,22 +142,17 @@ var checkModules = {
             this.countText = countGroup.add("statictext", undefined, "");
             this.countText.characters = 15;
 
-            // 赤色のペンと緑色のペンを作成
-            this.redPen = this.countText.graphics.newPen(this.countText.graphics.PenType.SOLID_COLOR, [1, 0, 0, 1], 1);
-            this.greenPen = this.countText.graphics.newPen(this.countText.graphics.PenType.SOLID_COLOR, [0, 0.8, 0, 1], 1);
+            // 赤色と緑色のペンを作成
+            var pens = createColorPens(this.countText);
+            this.redPen = pens.redPen;
+            this.greenPen = pens.greenPen;
 
             // 詳細表示用のグループ
-            var detailGroup = group.add("group");
-            detailGroup.orientation = "column";
-            detailGroup.alignChildren = ["left", "top"];
-            detailGroup.spacing = 2;
-            detailGroup.margins = [16, 0, 0, 0];
+            var detailGroup = createNoteGroup(group);
 
             this.detailText = detailGroup.add("statictext", undefined, "");
             this.detailText.characters = 50;
-            // フォントサイズを小さく、不透明度を70%に
-            this.detailText.graphics.font = ScriptUI.newFont("dialog", "REGULAR", 9);
-            this.detailText.graphics.foregroundColor = this.detailText.graphics.newPen(this.detailText.graphics.PenType.SOLID_COLOR, [1, 1, 1, 0.3], 1);
+            applyNoteStyle(this.detailText);
         },
 
         // チェック実行
@@ -204,7 +227,7 @@ var checkModules = {
             var group = parent.add("group");
             group.orientation = "column";
             group.alignChildren = ["left", "top"];
-            group.spacing = 10;
+            group.spacing = 0;
 
             // メインラベルとカウント
             var headerGroup = group.add("group");
@@ -223,17 +246,11 @@ var checkModules = {
             this.blackPen = this.resultText.graphics.newPen(this.resultText.graphics.PenType.SOLID_COLOR, [0, 0, 0, 1], 1);
 
             // 詳細表示（注釈スタイル）
-            var detailGroup = group.add("group");
-            detailGroup.orientation = "column";
-            detailGroup.alignChildren = ["left", "top"];
-            detailGroup.spacing = 2;
-            detailGroup.margins = [16, 0, 0, 0];
+            var detailGroup = createNoteGroup(group);
 
             this.detailText = detailGroup.add("statictext", undefined, "");
             this.detailText.characters = 35;
-            // フォントサイズを小さく、不透明度を70%に
-            this.detailText.graphics.font = ScriptUI.newFont("dialog", "REGULAR", 9);
-            this.detailText.graphics.foregroundColor = this.detailText.graphics.newPen(this.detailText.graphics.PenType.SOLID_COLOR, [1, 1, 1, 0.3], 1);
+            applyNoteStyle(this.detailText);
         },
 
         // チェック実行
@@ -287,7 +304,7 @@ var checkModules = {
             var group = parent.add("group");
             group.orientation = "column";
             group.alignChildren = ["left", "top"];
-            group.spacing = 10;
+            group.spacing = 0;
 
             // メインラベルとカウント
             var countGroup = group.add("group");
@@ -300,21 +317,14 @@ var checkModules = {
             this.countText.characters = 10;
 
             // 注釈
-            var noteGroup = group.add("group");
-            noteGroup.orientation = "column";
-            noteGroup.alignChildren = ["left", "top"];
-            noteGroup.spacing = 2;
-            noteGroup.margins = [16, 0, 0, 0];
+            var noteGroup = createNoteGroup(group);
 
             // 注釈テキストのスタイル設定
             var note1 = noteGroup.add("statictext", undefined, "※ グループは1つのオブジェクトとしてカウント");
             var note2 = noteGroup.add("statictext", undefined, "※ ロックされたレイヤーとオブジェクトは除外");
 
-            // フォントサイズを小さく、白色の不透明度を70%に
-            note1.graphics.font = ScriptUI.newFont("dialog", "REGULAR", 9);
-            note2.graphics.font = ScriptUI.newFont("dialog", "REGULAR", 9);
-            note1.graphics.foregroundColor = note1.graphics.newPen(note1.graphics.PenType.SOLID_COLOR, [1, 1, 1, 0.3], 1);
-            note2.graphics.foregroundColor = note2.graphics.newPen(note2.graphics.PenType.SOLID_COLOR, [1, 1, 1, 0.3], 1);
+            applyNoteStyle(note1);
+            applyNoteStyle(note2);
         },
 
         // チェック実行
@@ -357,7 +367,7 @@ var checkModules = {
             var group = parent.add("group");
             group.orientation = "column";
             group.alignChildren = ["left", "top"];
-            group.spacing = 10;
+            group.spacing = 0;
 
             // メインラベルとカウント
             var countGroup = group.add("group");
@@ -370,24 +380,16 @@ var checkModules = {
             this.countText.characters = 10;
 
             // 注釈
-            var noteGroup = group.add("group");
-            noteGroup.orientation = "column";
-            noteGroup.alignChildren = ["left", "top"];
-            noteGroup.spacing = 2;
-            noteGroup.margins = [16, 0, 0, 0];
+            var noteGroup = createNoteGroup(group);
 
             // 注釈テキストのスタイル設定
             var note1 = noteGroup.add("statictext", undefined, "※ 塗り・線の色をカウント");
             var note2 = noteGroup.add("statictext", undefined, "※ グラデーションは構成色を個別にカウント");
             var note3 = noteGroup.add("statictext", undefined, "※ 白・黒もカウント");
 
-            // フォントサイズを小さく、白色の不透明度を70%に
-            note1.graphics.font = ScriptUI.newFont("dialog", "REGULAR", 9);
-            note2.graphics.font = ScriptUI.newFont("dialog", "REGULAR", 9);
-            note3.graphics.font = ScriptUI.newFont("dialog", "REGULAR", 9);
-            note1.graphics.foregroundColor = note1.graphics.newPen(note1.graphics.PenType.SOLID_COLOR, [1, 1, 1, 0.3], 1);
-            note2.graphics.foregroundColor = note2.graphics.newPen(note2.graphics.PenType.SOLID_COLOR, [1, 1, 1, 0.3], 1);
-            note3.graphics.foregroundColor = note3.graphics.newPen(note3.graphics.PenType.SOLID_COLOR, [1, 1, 1, 0.3], 1);
+            applyNoteStyle(note1);
+            applyNoteStyle(note2);
+            applyNoteStyle(note3);
         },
 
         // チェック実行
@@ -498,7 +500,7 @@ var checkModules = {
             var group = parent.add("group");
             group.orientation = "column";
             group.alignChildren = ["left", "top"];
-            group.spacing = 10;
+            group.spacing = 0;
 
             // メインラベルとカウント
             var countGroup = group.add("group");
@@ -511,24 +513,20 @@ var checkModules = {
             this.countText = countGroup.add("statictext", undefined, "");
             this.countText.characters = 10;
 
-            // 赤色のペンと緑色のペンを作成
-            this.redPen = this.countText.graphics.newPen(this.countText.graphics.PenType.SOLID_COLOR, [1, 0, 0, 1], 1);
-            this.greenPen = this.countText.graphics.newPen(this.countText.graphics.PenType.SOLID_COLOR, [0, 0.8, 0, 1], 1);
+            // 赤色と緑色のペンを作成
+            var pens = createColorPens(this.countText);
+            this.redPen = pens.redPen;
+            this.greenPen = pens.greenPen;
 
             // 詳細表示用のグループ
-            var detailGroup = group.add("group");
-            detailGroup.orientation = "column";
-            detailGroup.alignChildren = ["left", "top"];
-            detailGroup.spacing = 2;
-            detailGroup.margins = [16, 0, 0, 0];
+            var detailGroup = createNoteGroup(group);
 
             this.detailText = detailGroup.add("statictext", undefined, "");
             this.detailText.characters = 50;
 
             // RGBモード時のメッセージ
             this.rgbMessage = detailGroup.add("statictext", undefined, "※ RGBモードでは使用できません");
-            this.rgbMessage.graphics.font = ScriptUI.newFont("dialog", "REGULAR", 9);
-            this.rgbMessage.graphics.foregroundColor = this.rgbMessage.graphics.newPen(this.rgbMessage.graphics.PenType.SOLID_COLOR, [1, 1, 1, 0.3], 1);
+            applyNoteStyle(this.rgbMessage);
             this.rgbMessage.visible = false;
 
             // カラーモードをチェックして初期状態を設定
@@ -736,7 +734,7 @@ var checkModules = {
             var group = parent.add("group");
             group.orientation = "column";
             group.alignChildren = ["left", "top"];
-            group.spacing = 10;
+            group.spacing = 0;
 
             // ロックオブジェクト
             var lockGroup = group.add("group");
@@ -748,9 +746,10 @@ var checkModules = {
             this.label = lockGroup.add("statictext", undefined, "ロックされているオブジェクト：");
             this.countText = lockGroup.add("statictext", undefined, "");
             this.countText.characters = 10;
-            // 赤色のペンと緑色のペンを作成
-            this.redPen = this.countText.graphics.newPen(this.countText.graphics.PenType.SOLID_COLOR, [1, 0, 0, 1], 1);
-            this.greenPen = this.countText.graphics.newPen(this.countText.graphics.PenType.SOLID_COLOR, [0, 0.8, 0, 1], 1);
+            // 赤色と緑色のペンを作成
+            var pens = createColorPens(this.countText);
+            this.redPen = pens.redPen;
+            this.greenPen = pens.greenPen;
 
             // 非表示オブジェクト
             var hideGroup = group.add("group");
@@ -764,21 +763,14 @@ var checkModules = {
             this.hideText.characters = 10;
 
             // 注釈
-            var noteGroup = group.add("group");
-            noteGroup.orientation = "column";
-            noteGroup.alignChildren = ["left", "top"];
-            noteGroup.spacing = 2;
-            noteGroup.margins = [16, 0, 0, 0];
+            var noteGroup = createNoteGroup(group);
 
             // 注釈テキストのスタイル設定
             var note1 = noteGroup.add("statictext", undefined, "※ レイヤーごとのロック・非表示は除外");
             var note2 = noteGroup.add("statictext", undefined, "※ 非表示とは「Command + 3」で隠したオブジェクト");
 
-            // フォントサイズを小さく、白色の不透明度を70%に
-            note1.graphics.font = ScriptUI.newFont("dialog", "REGULAR", 9);
-            note2.graphics.font = ScriptUI.newFont("dialog", "REGULAR", 9);
-            note1.graphics.foregroundColor = note1.graphics.newPen(note1.graphics.PenType.SOLID_COLOR, [1, 1, 1, 0.3], 1);
-            note2.graphics.foregroundColor = note2.graphics.newPen(note2.graphics.PenType.SOLID_COLOR, [1, 1, 1, 0.3], 1);
+            applyNoteStyle(note1);
+            applyNoteStyle(note2);
         },
 
         // チェック実行
@@ -874,7 +866,7 @@ var checkModules = {
             var group = parent.add("group");
             group.orientation = "column";
             group.alignChildren = ["left", "top"];
-            group.spacing = 10;
+            group.spacing = 0;
 
             // メインラベルとカウント
             var countGroup = group.add("group");
@@ -886,22 +878,17 @@ var checkModules = {
             this.label = countGroup.add("statictext", undefined, "使用フォント数：");
             this.countText = countGroup.add("statictext", undefined, "");
             this.countText.characters = 10;
-            // 赤色のペンと緑色のペンを作成
-            this.redPen = this.countText.graphics.newPen(this.countText.graphics.PenType.SOLID_COLOR, [1, 0, 0, 1], 1);
-            this.greenPen = this.countText.graphics.newPen(this.countText.graphics.PenType.SOLID_COLOR, [0, 0.8, 0, 1], 1);
+            // 赤色と緑色のペンを作成
+            var pens = createColorPens(this.countText);
+            this.redPen = pens.redPen;
+            this.greenPen = pens.greenPen;
 
             // フォント名表示用のグループ
-            var detailGroup = group.add("group");
-            detailGroup.orientation = "column";
-            detailGroup.alignChildren = ["left", "top"];
-            detailGroup.spacing = 2;
-            detailGroup.margins = [16, 0, 0, 0];
+            var detailGroup = createNoteGroup(group);
 
             this.detailText = detailGroup.add("statictext", undefined, "");
             this.detailText.characters = 50;
-            // フォントサイズを小さく、不透明度を70%に
-            this.detailText.graphics.font = ScriptUI.newFont("dialog", "REGULAR", 9);
-            this.detailText.graphics.foregroundColor = this.detailText.graphics.newPen(this.detailText.graphics.PenType.SOLID_COLOR, [1, 1, 1, 0.3], 1);
+            applyNoteStyle(this.detailText);
         },
 
         // チェック実行
@@ -998,7 +985,7 @@ var checkModules = {
             var group = parent.add("group");
             group.orientation = "column";
             group.alignChildren = ["left", "top"];
-            group.spacing = 10;
+            group.spacing = 0;
 
             // 孤立点
             var strayGroup = group.add("group");
@@ -1033,20 +1020,17 @@ var checkModules = {
             this.emptyTextText = emptyTextGroup.add("statictext", undefined, "");
             this.emptyTextText.characters = 10;
 
-            // 赤色のペンと緑色のペンを作成
-            this.redPen = this.strayText.graphics.newPen(this.strayText.graphics.PenType.SOLID_COLOR, [1, 0, 0, 1], 1);
-            this.greenPen = this.strayText.graphics.newPen(this.strayText.graphics.PenType.SOLID_COLOR, [0, 0.8, 0, 1], 1);
+            // 赤色と緑色のペンを作成
+            var pens = createColorPens(this.strayText);
+            this.redPen = pens.redPen;
+            this.greenPen = pens.greenPen;
 
             // 注釈テキスト
-            var noteGroup = group.add("group");
-            noteGroup.orientation = "column";
-            noteGroup.alignChildren = ["left", "top"];
-            noteGroup.spacing = 2;
-            noteGroup.margins = [16, 10, 0, 0];
+            var noteGroup = createNoteGroup(group);
+            noteGroup.margins = [UI_CONSTANTS.NOTE_INDENT, 10, 0, 0];
 
             var noteText = noteGroup.add("statictext", undefined, "オブジェクト>パス>パスの削除... で削除");
-            noteText.graphics.font = ScriptUI.newFont("dialog", "REGULAR", 9);
-            noteText.graphics.foregroundColor = noteText.graphics.newPen(noteText.graphics.PenType.SOLID_COLOR, [1, 1, 1, 0.3], 1);
+            applyNoteStyle(noteText);
         },
 
         // チェック実行
@@ -1168,7 +1152,7 @@ var checkModules = {
             var group = parent.add("group");
             group.orientation = "column";
             group.alignChildren = ["left", "top"];
-            group.spacing = 10;
+            group.spacing = 0;
 
             // メインラベルとカウント
             var countGroup = group.add("group");
@@ -1181,22 +1165,17 @@ var checkModules = {
             this.countText = countGroup.add("statictext", undefined, "");
             this.countText.characters = 10;
 
-            // 赤色のペンと緑色のペンを作成
-            this.redPen = this.countText.graphics.newPen(this.countText.graphics.PenType.SOLID_COLOR, [1, 0, 0, 1], 1);
-            this.greenPen = this.countText.graphics.newPen(this.countText.graphics.PenType.SOLID_COLOR, [0, 0.8, 0, 1], 1);
+            // 赤色と緑色のペンを作成
+            var pens = createColorPens(this.countText);
+            this.redPen = pens.redPen;
+            this.greenPen = pens.greenPen;
 
             // 詳細表示用のグループ
-            var detailGroup = group.add("group");
-            detailGroup.orientation = "column";
-            detailGroup.alignChildren = ["left", "top"];
-            detailGroup.spacing = 2;
-            detailGroup.margins = [16, 0, 0, 0];
+            var detailGroup = createNoteGroup(group);
 
             this.detailText = detailGroup.add("statictext", undefined, "");
             this.detailText.characters = 50;
-            // フォントサイズを小さく、不透明度を70%に
-            this.detailText.graphics.font = ScriptUI.newFont("dialog", "REGULAR", 9);
-            this.detailText.graphics.foregroundColor = this.detailText.graphics.newPen(this.detailText.graphics.PenType.SOLID_COLOR, [1, 1, 1, 0.3], 1);
+            applyNoteStyle(this.detailText);
         },
 
         // チェック実行
@@ -1276,7 +1255,7 @@ var checkModules = {
             var group = parent.add("group");
             group.orientation = "column";
             group.alignChildren = ["left", "top"];
-            group.spacing = 10;
+            group.spacing = 0;
 
             // メインラベルとカウント
             var countGroup = group.add("group");
@@ -1289,22 +1268,17 @@ var checkModules = {
             this.countText = countGroup.add("statictext", undefined, "");
             this.countText.characters = 10;
 
-            // 赤色のペンと緑色のペンを作成
-            this.redPen = this.countText.graphics.newPen(this.countText.graphics.PenType.SOLID_COLOR, [1, 0, 0, 1], 1);
-            this.greenPen = this.countText.graphics.newPen(this.countText.graphics.PenType.SOLID_COLOR, [0, 0.8, 0, 1], 1);
+            // 赤色と緑色のペンを作成
+            var pens = createColorPens(this.countText);
+            this.redPen = pens.redPen;
+            this.greenPen = pens.greenPen;
 
             // 詳細表示用のグループ
-            var detailGroup = group.add("group");
-            detailGroup.orientation = "column";
-            detailGroup.alignChildren = ["left", "top"];
-            detailGroup.spacing = 2;
-            detailGroup.margins = [16, 0, 0, 0];
+            var detailGroup = createNoteGroup(group);
 
             this.detailText = detailGroup.add("statictext", undefined, "");
             this.detailText.characters = 50;
-            // フォントサイズを小さく、不透明度を70%に
-            this.detailText.graphics.font = ScriptUI.newFont("dialog", "REGULAR", 9);
-            this.detailText.graphics.foregroundColor = this.detailText.graphics.newPen(this.detailText.graphics.PenType.SOLID_COLOR, [1, 1, 1, 0.3], 1);
+            applyNoteStyle(this.detailText);
         },
 
         // チェック実行
@@ -1383,7 +1357,7 @@ var checkModules = {
             var group = parent.add("group");
             group.orientation = "column";
             group.alignChildren = ["left", "top"];
-            group.spacing = 10;
+            group.spacing = 0;
 
             // メインラベルとカウント
             var countGroup = group.add("group");
@@ -1396,22 +1370,17 @@ var checkModules = {
             this.countText = countGroup.add("statictext", undefined, "");
             this.countText.characters = 10;
 
-            // 赤色のペンと緑色のペンを作成
-            this.redPen = this.countText.graphics.newPen(this.countText.graphics.PenType.SOLID_COLOR, [1, 0, 0, 1], 1);
-            this.greenPen = this.countText.graphics.newPen(this.countText.graphics.PenType.SOLID_COLOR, [0, 0.8, 0, 1], 1);
+            // 赤色と緑色のペンを作成
+            var pens = createColorPens(this.countText);
+            this.redPen = pens.redPen;
+            this.greenPen = pens.greenPen;
 
             // 詳細表示用のグループ
-            var detailGroup = group.add("group");
-            detailGroup.orientation = "column";
-            detailGroup.alignChildren = ["left", "top"];
-            detailGroup.spacing = 2;
-            detailGroup.margins = [16, 0, 0, 0];
+            var detailGroup = createNoteGroup(group);
 
             this.detailText = detailGroup.add("statictext", undefined, "");
             this.detailText.characters = 50;
-            // フォントサイズを小さく、不透明度を70%に
-            this.detailText.graphics.font = ScriptUI.newFont("dialog", "REGULAR", 9);
-            this.detailText.graphics.foregroundColor = this.detailText.graphics.newPen(this.detailText.graphics.PenType.SOLID_COLOR, [1, 1, 1, 0.3], 1);
+            applyNoteStyle(this.detailText);
         },
 
         // チェック実行
@@ -1514,7 +1483,7 @@ function createDialog() {
     var mainGroup = dialog.add("group");
     mainGroup.orientation = "column";
     mainGroup.alignChildren = ["left", "top"];
-    mainGroup.spacing = 10;
+    mainGroup.spacing = 0;
     mainGroup.margins = 16;
 
     // 各モジュールのUI作成
