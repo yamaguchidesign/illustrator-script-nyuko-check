@@ -2,8 +2,9 @@
 var UI_CONSTANTS = {
     NOTE_INDENT: 24,           // 注釈テキストの左インデント
     NOTE_SPACING: 2,           // 注釈グループ内の行間隔
-    NOTE_FONT_SIZE: 9,         // 注釈テキストのフォントサイズ
-    NOTE_OPACITY: 0.3          // 注釈テキストの不透明度
+    NOTE_FONT_SIZE: 12,         // 注釈テキストのフォントサイズ
+    NOTE_OPACITY: 0.3,         // 注釈テキストの不透明度
+    MAIN_FONT_SIZE: 12         // メインテキスト（チェック項目名・結果）のフォントサイズ
 };
 
 // 色情報を一意のキーに変換する関数
@@ -96,8 +97,14 @@ function createCheckMark(parent, isCheck) {
 
 // 注釈テキストのスタイル設定を共通化
 function applyNoteStyle(textElement) {
-    textElement.graphics.font = ScriptUI.newFont("dialog", "REGULAR", UI_CONSTANTS.NOTE_FONT_SIZE);
+    // フォント設定を削除してデフォルトのままにする
+    // textElement.graphics.font = ScriptUI.newFont("Helvetica", "BOLD", 25);
     textElement.graphics.foregroundColor = textElement.graphics.newPen(textElement.graphics.PenType.SOLID_COLOR, [1, 1, 1, UI_CONSTANTS.NOTE_OPACITY], 1);
+}
+
+// メインテキスト（チェック項目名・結果）のスタイル設定を共通化
+function applyMainTextStyle(textElement) {
+    textElement.graphics.font = ScriptUI.newFont("dialog", "REGULAR", UI_CONSTANTS.MAIN_FONT_SIZE);
 }
 
 // 赤色と緑色のペンを作成する共通関数
@@ -154,6 +161,10 @@ var checkModules = {
             this.label = countGroup.add("statictext", undefined, "ドキュメントカラーモード：");
             this.countText = countGroup.add("statictext", undefined, "");
             this.countText.characters = 15;
+
+            // メインテキストのスタイルを適用
+            applyMainTextStyle(this.label);
+            applyMainTextStyle(this.countText);
 
             // 赤色と緑色のペンを作成
             var pens = createColorPens(this.countText);
@@ -215,6 +226,7 @@ var checkModules = {
             } else {
                 this.countText.graphics.foregroundColor = this.redPen;
                 this.detailText.text = "印刷にはCMYKモードを推奨します";
+                applyNoteStyle(this.detailText); // スタイルを再適用
                 this.detailGroup.visible = true;
             }
         }
@@ -237,6 +249,10 @@ var checkModules = {
             this.label = headerGroup.add("statictext", undefined, "位置，サイズに小数点のあるアートボード(px)：");
             this.resultText = headerGroup.add("statictext", undefined, "");
             this.resultText.characters = 5;
+
+            // メインテキストのスタイルを適用
+            applyMainTextStyle(this.label);
+            applyMainTextStyle(this.resultText);
 
             // 各種ペンを作成
             this.redPen = this.resultText.graphics.newPen(this.resultText.graphics.PenType.SOLID_COLOR, [1, 0, 0, 1], 1);
@@ -277,6 +293,10 @@ var checkModules = {
             this.label = countGroup.add("statictext", undefined, "ファイル内のオブジェクト数：");
             this.countText = countGroup.add("statictext", undefined, "");
             this.countText.characters = 10;
+
+            // メインテキストのスタイルを適用
+            applyMainTextStyle(this.label);
+            applyMainTextStyle(this.countText);
 
             // 注釈
             var noteGroup = createNoteGroup(group);
@@ -330,6 +350,10 @@ var checkModules = {
             this.label = countGroup.add("statictext", undefined, "ファイル内で使用している色数：");
             this.countText = countGroup.add("statictext", undefined, "");
             this.countText.characters = 10;
+
+            // メインテキストのスタイルを適用
+            applyMainTextStyle(this.label);
+            applyMainTextStyle(this.countText);
 
             // 注釈
             var noteGroup = createNoteGroup(group);
@@ -453,6 +477,10 @@ var checkModules = {
             this.label = countGroup.add("statictext", undefined, "CMYK値に小数点がある色：");
             this.countText = countGroup.add("statictext", undefined, "");
             this.countText.characters = 10;
+
+            // メインテキストのスタイルを適用
+            applyMainTextStyle(this.label);
+            applyMainTextStyle(this.countText);
 
             // 赤色と緑色のペンを作成
             var pens = createColorPens(this.countText);
@@ -666,6 +694,10 @@ var checkModules = {
             this.label = lockGroup.add("statictext", undefined, "ロックされているオブジェクト：");
             this.countText = lockGroup.add("statictext", undefined, "");
             this.countText.characters = 10;
+
+            // メインテキストのスタイルを適用
+            applyMainTextStyle(this.label);
+            applyMainTextStyle(this.countText);
             // 赤色と緑色のペンを作成
             var pens = createColorPens(this.countText);
             this.redPen = pens.redPen;
@@ -678,6 +710,10 @@ var checkModules = {
             this.hideLabel = hideGroup.add("statictext", undefined, "非表示のオブジェクト：");
             this.hideText = hideGroup.add("statictext", undefined, "");
             this.hideText.characters = 10;
+
+            // メインテキストのスタイルを適用
+            applyMainTextStyle(this.hideLabel);
+            applyMainTextStyle(this.hideText);
 
             // 注釈
             var noteGroup = createNoteGroup(group);
@@ -766,6 +802,10 @@ var checkModules = {
             this.label = countGroup.add("statictext", undefined, "使用フォント数：");
             this.countText = countGroup.add("statictext", undefined, "");
             this.countText.characters = 10;
+
+            // メインテキストのスタイルを適用
+            applyMainTextStyle(this.label);
+            applyMainTextStyle(this.countText);
             // 赤色と緑色のペンを作成
             var pens = createColorPens(this.countText);
             this.redPen = pens.redPen;
@@ -865,6 +905,10 @@ var checkModules = {
             this.strayText = strayGroup.add("statictext", undefined, "");
             this.strayText.characters = 10;
 
+            // メインテキストのスタイルを適用
+            applyMainTextStyle(this.strayLabel);
+            applyMainTextStyle(this.strayText);
+
             // 塗りなしオブジェクト
             var noFillGroup = createCountGroup(group);
 
@@ -873,6 +917,10 @@ var checkModules = {
             this.noFillText = noFillGroup.add("statictext", undefined, "");
             this.noFillText.characters = 10;
 
+            // メインテキストのスタイルを適用
+            applyMainTextStyle(this.noFillLabel);
+            applyMainTextStyle(this.noFillText);
+
             // 空テキストパス
             var emptyTextGroup = createCountGroup(group);
 
@@ -880,6 +928,10 @@ var checkModules = {
             this.emptyTextLabel = emptyTextGroup.add("statictext", undefined, "空のテキストパス：");
             this.emptyTextText = emptyTextGroup.add("statictext", undefined, "");
             this.emptyTextText.characters = 10;
+
+            // メインテキストのスタイルを適用
+            applyMainTextStyle(this.emptyTextLabel);
+            applyMainTextStyle(this.emptyTextText);
 
             // 赤色と緑色のペンを作成
             var pens = createColorPens(this.strayText);
@@ -986,6 +1038,10 @@ var checkModules = {
             this.countText = countGroup.add("statictext", undefined, "");
             this.countText.characters = 10;
 
+            // メインテキストのスタイルを適用
+            applyMainTextStyle(this.label);
+            applyMainTextStyle(this.countText);
+
             // 赤色と緑色のペンを作成
             var pens = createColorPens(this.countText);
             this.redPen = pens.redPen;
@@ -1068,6 +1124,10 @@ var checkModules = {
             this.countText = countGroup.add("statictext", undefined, "");
             this.countText.characters = 10;
 
+            // メインテキストのスタイルを適用
+            applyMainTextStyle(this.label);
+            applyMainTextStyle(this.countText);
+
             // 赤色と緑色のペンを作成
             var pens = createColorPens(this.countText);
             this.redPen = pens.redPen;
@@ -1148,6 +1208,10 @@ var checkModules = {
             this.label = countGroup.add("statictext", undefined, "300dpi以下の埋め込み画像：");
             this.countText = countGroup.add("statictext", undefined, "");
             this.countText.characters = 10;
+
+            // メインテキストのスタイルを適用
+            applyMainTextStyle(this.label);
+            applyMainTextStyle(this.countText);
 
             // 赤色と緑色のペンを作成
             var pens = createColorPens(this.countText);
@@ -1270,11 +1334,9 @@ function createDialog() {
     buttonGroup.spacing = 10;
     buttonGroup.margins = [0, 10, 0, 0]; // 上部に余白を追加
 
-    var okButton = buttonGroup.add("button", undefined, "OK");
-    var cancelButton = buttonGroup.add("button", undefined, "キャンセル");
+    var closeButton = buttonGroup.add("button", undefined, "閉じる");
 
-    okButton.onClick = function () { dialog.close(); }
-    cancelButton.onClick = function () { dialog.close(); }
+    closeButton.onClick = function () { dialog.close(); }
 
     return dialog;
 }
