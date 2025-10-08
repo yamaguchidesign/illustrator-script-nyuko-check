@@ -211,16 +211,11 @@ var checkModules = {
             if (isCMYK) {
                 this.countText.graphics.foregroundColor = this.greenPen;
                 this.detailText.text = "";
-                this.detailGroup.remove();
+                this.detailGroup.visible = false;
             } else {
                 this.countText.graphics.foregroundColor = this.redPen;
                 this.detailText.text = "印刷にはCMYKモードを推奨します";
-                // detailGroupを再作成
-                this.detailGroup = createNoteGroup(this.group);
-                this.detailText = this.detailGroup.add("statictext", undefined, "");
-                this.detailText.characters = 50;
-                applyNoteStyle(this.detailText);
-                this.detailText.text = "印刷にはCMYKモードを推奨します";
+                this.detailGroup.visible = true;
             }
         }
     },
@@ -254,7 +249,6 @@ var checkModules = {
             this.detailText.characters = 35;
             applyNoteStyle(this.detailText);
         },
-
 
         updateUI: function (results) {
             var hasDecimals = results.artboardDecimals.length > 0;
@@ -294,7 +288,6 @@ var checkModules = {
             applyNoteStyle(note1);
             applyNoteStyle(note2);
         },
-
 
         // オブジェクトカウント処理
         countObjects: function () {
@@ -350,7 +343,6 @@ var checkModules = {
             applyNoteStyle(note2);
             applyNoteStyle(note3);
         },
-
 
         // 色をカウントする処理
         countColors: function () {
@@ -486,7 +478,6 @@ var checkModules = {
                 this.rgbMessage.visible = true;
             }
         },
-
 
         // CMYK小数点をチェックする処理
         countCMYKDecimals: function () {
@@ -699,7 +690,6 @@ var checkModules = {
             applyNoteStyle(note2);
         },
 
-
         // ロック・非表示オブジェクトをカウントする処理
         countLockHideObjects: function () {
             var doc = app.activeDocument;
@@ -788,7 +778,6 @@ var checkModules = {
             this.detailText.characters = 50;
             applyNoteStyle(this.detailText);
         },
-
 
         // フォントをチェックする処理
         countFonts: function () {
@@ -905,7 +894,6 @@ var checkModules = {
             applyNoteStyle(noteText);
         },
 
-
         // 不要なオブジェクトをカウントする処理
         countUnnecessaryObjects: function () {
             var doc = app.activeDocument;
@@ -953,7 +941,6 @@ var checkModules = {
                 emptyText: emptyText
             };
         },
-
 
         updateUI: function (results) {
             this.strayText.text = results.strayPoints + "個";
@@ -1011,7 +998,6 @@ var checkModules = {
             this.detailText.characters = 50;
             applyNoteStyle(this.detailText);
         },
-
 
         // 線幅をチェックする処理
         checkStrokeWidth: function () {
@@ -1095,7 +1081,6 @@ var checkModules = {
             applyNoteStyle(this.detailText);
         },
 
-
         // RGBリンク画像をチェックする処理
         checkLinkedRGBImages: function () {
             var doc = app.activeDocument;
@@ -1176,7 +1161,6 @@ var checkModules = {
             this.detailText.characters = 50;
             applyNoteStyle(this.detailText);
         },
-
 
         // 画像解像度をチェックする処理
         checkImageResolution: function () {
@@ -1611,7 +1595,14 @@ function main() {
 
         // 各モジュールの結果を更新
         for (var key in checkModules) {
-            checkModules[key].updateUI(results);
+            try {
+                if (checkModules[key] && checkModules[key].updateUI) {
+                    checkModules[key].updateUI(results);
+                }
+            } catch (e) {
+                alert("エラーが発生しました（モジュール: " + key + "）: " + e.message);
+                throw e;
+            }
         }
     } catch (e) {
         alert("エラーが発生しました: " + e.message);
