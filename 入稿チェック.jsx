@@ -938,6 +938,7 @@ var checkModules = {
             var strayPoints = 0;
             var noFill = 0;
             var emptyText = 0;
+            var debugMessages = []; // デバッグメッセージを保存
 
             function checkItems(container) {
                 for (var i = 0; i < container.pageItems.length; i++) {
@@ -948,9 +949,21 @@ var checkModules = {
                         strayPoints++;
                     }
 
-                    // 塗りなしオブジェクトのチェック
+                    // 塗りなしオブジェクトのチェック（クリッピングマスクのマスクは除外）
                     if (item.typename === "PathItem" && !item.filled && !item.stroked) {
-                        noFill++;
+                        // デバッグ: clippingプロパティの値を確認
+                        var debugInfo = "オブジェクト: " + (item.name || "無名");
+                        debugInfo += " | clipping: " + item.clipping;
+                        debugInfo += " | guides: " + item.guides;
+                        if (item.parent && item.parent.typename === "GroupItem") {
+                            debugInfo += " | 親clipped: " + item.parent.clipped;
+                        }
+                        debugMessages.push(debugInfo);
+
+                        // clippingプロパティがtrueの場合はクリッピングマスクのマスクなので除外
+                        if (!item.clipping) {
+                            noFill++;
+                        }
                     }
 
                     // 空テキストパスのチェック
@@ -971,6 +984,17 @@ var checkModules = {
                 if (!layer.locked && layer.visible) {
                     checkItems(layer);
                 }
+            }
+
+            // デバッグ情報を表示（最初の5件のみ）
+            if (debugMessages.length > 0) {
+                var displayCount = debugMessages.length < 5 ? debugMessages.length : 5;
+                var debugOutput = "塗りなしオブジェクトのデバッグ情報（最初の" + displayCount + "件）:\n\n";
+                for (var d = 0; d < displayCount; d++) {
+                    debugOutput += (d + 1) + ". " + debugMessages[d] + "\n";
+                }
+                debugOutput += "\n合計: " + debugMessages.length + "個";
+                alert(debugOutput);
             }
 
             return {
