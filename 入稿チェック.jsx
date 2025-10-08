@@ -141,7 +141,7 @@ function createCountGroup(parent) {
     var countGroup = parent.add("group");
     countGroup.orientation = "row";
     countGroup.alignChildren = ["left", "center"];
-    countGroup.spacing = 0;
+    countGroup.spacing = 0;//チェックマークと項目タイトルの間
     return countGroup;
 }
 
@@ -242,7 +242,7 @@ var checkModules = {
             var headerGroup = group.add("group");
             headerGroup.orientation = "row";
             headerGroup.alignChildren = ["left", "top"];
-            headerGroup.spacing = 0;  // グループ間のスペースを0に
+            headerGroup.spacing = 0;  // チェックマークとタイトルと値の間隔
 
             // チェックマーク用のテキスト
             this.checkMark = createCheckMark(headerGroup, true);
@@ -256,7 +256,7 @@ var checkModules = {
 
             // 各種ペンを作成
             this.redPen = this.resultText.graphics.newPen(this.resultText.graphics.PenType.SOLID_COLOR, [1, 0, 0, 1], 1);
-            this.blackPen = this.resultText.graphics.newPen(this.resultText.graphics.PenType.SOLID_COLOR, [0, 0, 0, 1], 1);
+            this.greenPen = this.resultText.graphics.newPen(this.resultText.graphics.PenType.SOLID_COLOR, [0, 0.8, 0, 1], 1);
 
             // 詳細表示（注釈スタイル）
             var detailGroup = createNoteGroup(group);
@@ -273,7 +273,7 @@ var checkModules = {
             this.checkMark.graphics.foregroundColor = this.checkMark.graphics.newPen(this.checkMark.graphics.PenType.SOLID_COLOR, penColor, 1);
 
             this.resultText.text = results.artboardDecimals.length + "個";
-            this.resultText.graphics.foregroundColor = hasDecimals ? this.redPen : this.blackPen;
+            this.resultText.graphics.foregroundColor = hasDecimals ? this.redPen : this.greenPen;
             this.detailText.text = hasDecimals ? "アートボード番号：" + results.artboardDecimals.join(", ") : "";
         }
     },
@@ -285,10 +285,7 @@ var checkModules = {
             var group = createModuleGroup(parent);
 
             // メインラベルとカウント
-            var countGroup = group.add("group");
-            countGroup.orientation = "row";
-            countGroup.alignChildren = ["left", "center"];
-            countGroup.spacing = 10;  // 元の間隔に戻す
+            var countGroup = createCountGroup(group);
 
             this.label = countGroup.add("statictext", undefined, "ファイル内のオブジェクト数：");
             this.countText = countGroup.add("statictext", undefined, "");
@@ -345,7 +342,6 @@ var checkModules = {
 
             // メインラベルとカウント
             var countGroup = createCountGroup(group);
-            countGroup.spacing = 10;  // 元の間隔に戻す
 
             this.label = countGroup.add("statictext", undefined, "ファイル内で使用している色数：");
             this.countText = countGroup.add("statictext", undefined, "");
@@ -1311,7 +1307,7 @@ function createDialog() {
     var mainGroup = dialog.add("group");
     mainGroup.orientation = "column";
     mainGroup.alignChildren = ["left", "top"];
-    mainGroup.spacing = 0;
+    mainGroup.spacing = 8;//罫線の上下スペース
     mainGroup.margins = 16;
 
     // 各モジュールのUI作成
