@@ -785,8 +785,9 @@ var checkModules = {
         }
     },
 
-    // フォントチェック機能
-    fontCheck: {
+
+    // アウトライン化されていないテキストチェック機能
+    outlineTextCheck: {
         // UI要素
         createUI: function (parent) {
             var group = createModuleGroup(parent);
@@ -795,19 +796,20 @@ var checkModules = {
             var countGroup = createCountGroup(group);
 
             this.checkMark = createCheckMark(countGroup, true);
-            this.label = countGroup.add("statictext", undefined, "使用フォント数：");
+            this.label = countGroup.add("statictext", undefined, "アウトライン化されていないテキスト：");
             this.countText = countGroup.add("statictext", undefined, "");
             this.countText.characters = 10;
 
             // メインテキストのスタイルを適用
             applyMainTextStyle(this.label);
             applyMainTextStyle(this.countText);
+
             // 赤色と緑色のペンを作成
             var pens = createColorPens(this.countText);
             this.redPen = pens.redPen;
             this.greenPen = pens.greenPen;
 
-            // フォント名表示用のグループ
+            // 詳細表示用のグループ
             var detailGroup = createNoteGroup(group);
 
             this.detailText = detailGroup.add("statictext", undefined, "");
@@ -815,72 +817,60 @@ var checkModules = {
             applyNoteStyle(this.detailText);
         },
 
-        // フォントをチェックする処理
-        countFonts: function () {
+        // アウトライン化されていないテキストをチェックする処理
+        checkOutlineText: function () {
             var doc = app.activeDocument;
-            var fontSet = {};
+            var textItems = [];
 
-            function checkTextItem(item) {
-                if (item.typename === "TextFrame") {
-                    // TextFrameの場合は、テキストレンジを取得して各文字のフォントをチェック
-                    var textRange = item.textRange;
-                    for (var i = 0; i < textRange.length; i++) {
-                        var font = textRange.characters[i].textFont;
-                        if (font) {
-                            fontSet[font.name] = true;
+            function checkTextItems(container) {
+                for (var i = 0; i < container.pageItems.length; i++) {
+                    var item = container.pageItems[i];
+
+                    if (item.typename === "TextFrame") {
+                        // テキストフレームの場合、文字がアウトライン化されているかチェック
+                        if (item.textRange.length > 0) {
+                            // テキストが存在する場合、アウトライン化されていないとみなす
+                            textItems.push(item);
                         }
                     }
-                }
 
-                // グループ内のアイテムをチェック
-                if (item.typename === "GroupItem") {
-                    for (var i = 0; i < item.pageItems.length; i++) {
-                        checkTextItem(item.pageItems[i]);
+                    // グループの場合は再帰的にチェック
+                    if (item.typename === "GroupItem") {
+                        checkTextItems(item);
                     }
                 }
             }
 
-            // すべてのレイヤーのアイテムをチェック
+            // ロックされていないレイヤーのみをチェック
             for (var i = 0; i < doc.layers.length; i++) {
                 var layer = doc.layers[i];
                 if (!layer.locked && layer.visible) {
-                    for (var j = 0; j < layer.pageItems.length; j++) {
-                        checkTextItem(layer.pageItems[j]);
-                    }
+                    checkTextItems(layer);
                 }
             }
 
-            // フォント名の配列を作成
-            var fontNames = [];
-            for (var name in fontSet) {
-                fontNames.push(name);
+            var details = [];
+            for (var i = 0; i < textItems.length; i++) {
+                details.push("テキスト" + (i + 1));
             }
 
-            // フォント名でソート
-            fontNames.sort();
-
             return {
-                count: fontNames.length,
-                fontNames: fontNames
+                count: textItems.length,
+                details: details
             };
         },
 
         updateUI: function (results) {
-            var fontNames = [];
-            for (var name in results.fonts) {
-                if (results.fonts.hasOwnProperty(name)) {
-                    fontNames.push(name);
-                }
-            }
-            fontNames.sort();
+            var count = results.outlineText ? results.outlineText.length : 0;
+            this.countText.text = count + "個";
+            this.checkMark.text = count === 0 ? "✓" : "✗";
+            var penColor = count === 0 ? [0, 0.8, 0, 1] : [1, 0, 0, 1];
+            this.checkMark.graphics.foregroundColor = this.checkMark.graphics.newPen(this.checkMark.graphics.PenType.SOLID_COLOR, penColor, 1);
 
-            this.countText.text = fontNames.length + "種類";
-            if (fontNames.length > 0) {
-                this.checkMark.text = "✗";
+            if (count > 0) {
                 this.countText.graphics.foregroundColor = this.redPen;
-                this.detailText.text = fontNames.join(", ");
+                this.detailText.text = results.outlineText ? results.outlineText.join(", ") : "";
             } else {
-                this.checkMark.text = "✓";
                 this.countText.graphics.foregroundColor = this.greenPen;
                 this.detailText.text = "";
             }
@@ -1291,7 +1281,7 @@ var moduleOrder = [
     "strokeWidthCheck",
     "rgbLinkedImageCheck",
     "lockHideCheck",
-    "fontCheck",
+    "outlineTextCheck",
     "imageResolutionCheck",
     "unnecessaryObjectCheck",
     "colorCount",
@@ -1354,6 +1344,7 @@ function scanDocument(progress) {
         lowResImages: [],    // 300dpi以下の画像リスト
         thinStrokes: [],     // 0.1mm以下の線幅の線リスト
         rgbLinkedImages: [], // RGBリンク画像リスト
+        outlineText: [],     // アウトライン化されていないテキストリスト
         documentColorMode: "" // ドキュメントカラーモード
     };
 
@@ -1619,6 +1610,10 @@ function scanDocument(progress) {
         currentStep++;
         updateProgress();
     }
+
+    // アウトライン化されていないテキストチェック
+    var outlineTextResult = checkModules.outlineTextCheck.checkOutlineText();
+    results.outlineText = outlineTextResult.details;
 
     return results;
 }
