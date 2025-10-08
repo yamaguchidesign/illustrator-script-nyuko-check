@@ -120,22 +120,35 @@ function createNoteGroup(parent) {
     return noteGroup;
 }
 
+// メインモジュールグループを作成する共通関数
+function createModuleGroup(parent) {
+    var group = parent.add("group");
+    group.orientation = "column";
+    group.alignChildren = ["left", "top"];
+    group.spacing = 4;//項目タイトルと注釈の間
+    return group;
+}
+
+// カウントグループ（横並び）を作成する共通関数
+function createCountGroup(parent) {
+    var countGroup = parent.add("group");
+    countGroup.orientation = "row";
+    countGroup.alignChildren = ["left", "center"];
+    countGroup.spacing = 0;
+    return countGroup;
+}
+
 // 各チェック機能のモジュール
 var checkModules = {
     // ドキュメントカラーモードチェック機能
     documentColorModeCheck: {
         // UI要素
         createUI: function (parent) {
-            var group = parent.add("group");
-            group.orientation = "column";
-            group.alignChildren = ["left", "top"];
-            group.spacing = 0;
+            var group = createModuleGroup(parent);
+            this.group = group; // groupを保存
 
             // メインラベルとカウント
-            var countGroup = group.add("group");
-            countGroup.orientation = "row";
-            countGroup.alignChildren = ["left", "center"];
-            countGroup.spacing = 0;
+            var countGroup = createCountGroup(group);
 
             this.checkMark = createCheckMark(countGroup, true);
             this.label = countGroup.add("statictext", undefined, "ドキュメントカラーモード：");
@@ -148,26 +161,11 @@ var checkModules = {
             this.greenPen = pens.greenPen;
 
             // 詳細表示用のグループ
-            var detailGroup = createNoteGroup(group);
+            this.detailGroup = createNoteGroup(group);
 
-            this.detailText = detailGroup.add("statictext", undefined, "");
+            this.detailText = this.detailGroup.add("statictext", undefined, "");
             this.detailText.characters = 50;
             applyNoteStyle(this.detailText);
-        },
-
-        // チェック実行
-        check: function () {
-            var result = this.checkDocumentColorMode();
-            this.countText.text = result.mode;
-            if (result.isCMYK) {
-                this.checkMark.text = "✓";
-                this.countText.graphics.foregroundColor = this.greenPen;
-                this.detailText.text = "";
-            } else {
-                this.checkMark.text = "✗";
-                this.countText.graphics.foregroundColor = this.redPen;
-                this.detailText.text = "印刷にはCMYKモードを推奨します";
-            }
         },
 
         // ドキュメントカラーモードをチェックする処理
@@ -213,8 +211,15 @@ var checkModules = {
             if (isCMYK) {
                 this.countText.graphics.foregroundColor = this.greenPen;
                 this.detailText.text = "";
+                this.detailGroup.remove();
             } else {
                 this.countText.graphics.foregroundColor = this.redPen;
+                this.detailText.text = "印刷にはCMYKモードを推奨します";
+                // detailGroupを再作成
+                this.detailGroup = createNoteGroup(this.group);
+                this.detailText = this.detailGroup.add("statictext", undefined, "");
+                this.detailText.characters = 50;
+                applyNoteStyle(this.detailText);
                 this.detailText.text = "印刷にはCMYKモードを推奨します";
             }
         }
@@ -224,10 +229,7 @@ var checkModules = {
     artboardDecimal: {
         // UI要素
         createUI: function (parent) {
-            var group = parent.add("group");
-            group.orientation = "column";
-            group.alignChildren = ["left", "top"];
-            group.spacing = 0;
+            var group = createModuleGroup(parent);
 
             // メインラベルとカウント
             var headerGroup = group.add("group");
@@ -253,37 +255,6 @@ var checkModules = {
             applyNoteStyle(this.detailText);
         },
 
-        // チェック実行
-        check: function () {
-            var doc = app.activeDocument;
-            var hasDecimal = false;
-            var decimalArtboards = [];
-
-            for (var i = 0; i < doc.artboards.length; i++) {
-                var artboard = doc.artboards[i];
-                var rect = artboard.artboardRect;
-
-                for (var j = 0; j < rect.length; j++) {
-                    if (rect[j] % 1 !== 0) {
-                        hasDecimal = true;
-                        decimalArtboards.push(i + 1);
-                        break;
-                    }
-                }
-            }
-
-            if (hasDecimal) {
-                this.checkMark.text = "✗";
-                this.resultText.text = decimalArtboards.length + "個";
-                this.resultText.graphics.foregroundColor = this.redPen;
-                this.detailText.text = "アートボード番号：" + decimalArtboards.join(", ");
-            } else {
-                this.checkMark.text = "✓";
-                this.resultText.text = "0個";
-                this.resultText.graphics.foregroundColor = this.blackPen;
-                this.detailText.text = "";
-            }
-        },
 
         updateUI: function (results) {
             var hasDecimals = results.artboardDecimals.length > 0;
@@ -301,10 +272,7 @@ var checkModules = {
     objectCount: {
         // UI要素
         createUI: function (parent) {
-            var group = parent.add("group");
-            group.orientation = "column";
-            group.alignChildren = ["left", "top"];
-            group.spacing = 0;
+            var group = createModuleGroup(parent);
 
             // メインラベルとカウント
             var countGroup = group.add("group");
@@ -327,10 +295,6 @@ var checkModules = {
             applyNoteStyle(note2);
         },
 
-        // チェック実行
-        check: function () {
-            this.countText.text = this.countObjects() + "個";
-        },
 
         // オブジェクトカウント処理
         countObjects: function () {
@@ -364,15 +328,10 @@ var checkModules = {
     colorCount: {
         // UI要素
         createUI: function (parent) {
-            var group = parent.add("group");
-            group.orientation = "column";
-            group.alignChildren = ["left", "top"];
-            group.spacing = 0;
+            var group = createModuleGroup(parent);
 
             // メインラベルとカウント
-            var countGroup = group.add("group");
-            countGroup.orientation = "row";
-            countGroup.alignChildren = ["left", "center"];
+            var countGroup = createCountGroup(group);
             countGroup.spacing = 10;  // 元の間隔に戻す
 
             this.label = countGroup.add("statictext", undefined, "ファイル内で使用している色数：");
@@ -392,10 +351,6 @@ var checkModules = {
             applyNoteStyle(note3);
         },
 
-        // チェック実行
-        check: function () {
-            this.countText.text = this.countColors() + "色";
-        },
 
         // 色をカウントする処理
         countColors: function () {
@@ -497,16 +452,10 @@ var checkModules = {
     cmykDecimalCheck: {
         // UI要素
         createUI: function (parent) {
-            var group = parent.add("group");
-            group.orientation = "column";
-            group.alignChildren = ["left", "top"];
-            group.spacing = 0;
+            var group = createModuleGroup(parent);
 
             // メインラベルとカウント
-            var countGroup = group.add("group");
-            countGroup.orientation = "row";
-            countGroup.alignChildren = ["left", "center"];
-            countGroup.spacing = 0;
+            var countGroup = createCountGroup(group);
 
             this.checkMark = createCheckMark(countGroup, true);
             this.label = countGroup.add("statictext", undefined, "CMYK値に小数点がある色：");
@@ -538,20 +487,6 @@ var checkModules = {
             }
         },
 
-        // チェック実行
-        check: function () {
-            var result = this.countCMYKDecimals();
-            this.countText.text = result.count + "色";
-            if (result.count > 0) {
-                this.checkMark.text = "✗";
-                this.countText.graphics.foregroundColor = this.redPen;
-                this.detailText.text = result.details.join(", ");
-            } else {
-                this.checkMark.text = "✓";
-                this.countText.graphics.foregroundColor = this.greenPen;
-                this.detailText.text = "";
-            }
-        },
 
         // CMYK小数点をチェックする処理
         countCMYKDecimals: function () {
@@ -731,16 +666,10 @@ var checkModules = {
     lockHideCheck: {
         // UI要素
         createUI: function (parent) {
-            var group = parent.add("group");
-            group.orientation = "column";
-            group.alignChildren = ["left", "top"];
-            group.spacing = 0;
+            var group = createModuleGroup(parent);
 
             // ロックオブジェクト
-            var lockGroup = group.add("group");
-            lockGroup.orientation = "row";
-            lockGroup.alignChildren = ["left", "center"];
-            lockGroup.spacing = 0;
+            var lockGroup = createCountGroup(group);
 
             this.checkMark = createCheckMark(lockGroup, true);
             this.label = lockGroup.add("statictext", undefined, "ロックされているオブジェクト：");
@@ -752,10 +681,7 @@ var checkModules = {
             this.greenPen = pens.greenPen;
 
             // 非表示オブジェクト
-            var hideGroup = group.add("group");
-            hideGroup.orientation = "row";
-            hideGroup.alignChildren = ["left", "center"];
-            hideGroup.spacing = 0;
+            var hideGroup = createCountGroup(group);
 
             this.hideCheckMark = createCheckMark(hideGroup, true);
             this.hideLabel = hideGroup.add("statictext", undefined, "非表示のオブジェクト：");
@@ -773,28 +699,6 @@ var checkModules = {
             applyNoteStyle(note2);
         },
 
-        // チェック実行
-        check: function () {
-            var counts = this.countLockHideObjects();
-            this.countText.text = counts.locked + "個";
-            this.hideText.text = counts.hidden + "個";
-
-            if (counts.locked > 0) {
-                this.checkMark.text = "✗";
-                this.countText.graphics.foregroundColor = this.redPen;
-            } else {
-                this.checkMark.text = "✓";
-                this.countText.graphics.foregroundColor = this.greenPen;
-            }
-
-            if (counts.hidden > 0) {
-                this.hideCheckMark.text = "✗";
-                this.hideText.graphics.foregroundColor = this.redPen;
-            } else {
-                this.hideCheckMark.text = "✓";
-                this.hideText.graphics.foregroundColor = this.greenPen;
-            }
-        },
 
         // ロック・非表示オブジェクトをカウントする処理
         countLockHideObjects: function () {
@@ -863,16 +767,10 @@ var checkModules = {
     fontCheck: {
         // UI要素
         createUI: function (parent) {
-            var group = parent.add("group");
-            group.orientation = "column";
-            group.alignChildren = ["left", "top"];
-            group.spacing = 0;
+            var group = createModuleGroup(parent);
 
             // メインラベルとカウント
-            var countGroup = group.add("group");
-            countGroup.orientation = "row";
-            countGroup.alignChildren = ["left", "center"];
-            countGroup.spacing = 0;
+            var countGroup = createCountGroup(group);
 
             this.checkMark = createCheckMark(countGroup, true);
             this.label = countGroup.add("statictext", undefined, "使用フォント数：");
@@ -891,20 +789,6 @@ var checkModules = {
             applyNoteStyle(this.detailText);
         },
 
-        // チェック実行
-        check: function () {
-            var result = this.countFonts();
-            this.countText.text = result.count + "種類";
-            if (result.count > 0) {
-                this.checkMark.text = "✗";
-                this.countText.graphics.foregroundColor = this.redPen;
-                this.detailText.text = result.fontNames.join(", ");
-            } else {
-                this.checkMark.text = "✓";
-                this.countText.graphics.foregroundColor = this.greenPen;
-                this.detailText.text = "";
-            }
-        },
 
         // フォントをチェックする処理
         countFonts: function () {
@@ -982,16 +866,10 @@ var checkModules = {
     unnecessaryObjectCheck: {
         // UI要素
         createUI: function (parent) {
-            var group = parent.add("group");
-            group.orientation = "column";
-            group.alignChildren = ["left", "top"];
-            group.spacing = 0;
+            var group = createModuleGroup(parent);
 
             // 孤立点
-            var strayGroup = group.add("group");
-            strayGroup.orientation = "row";
-            strayGroup.alignChildren = ["left", "center"];
-            strayGroup.spacing = 0;
+            var strayGroup = createCountGroup(group);
 
             this.strayCheckMark = createCheckMark(strayGroup, true);
             this.strayLabel = strayGroup.add("statictext", undefined, "孤立点：");
@@ -999,10 +877,7 @@ var checkModules = {
             this.strayText.characters = 10;
 
             // 塗りなしオブジェクト
-            var noFillGroup = group.add("group");
-            noFillGroup.orientation = "row";
-            noFillGroup.alignChildren = ["left", "center"];
-            noFillGroup.spacing = 0;
+            var noFillGroup = createCountGroup(group);
 
             this.noFillCheckMark = createCheckMark(noFillGroup, true);
             this.noFillLabel = noFillGroup.add("statictext", undefined, "塗りのないオブジェクト：");
@@ -1010,10 +885,7 @@ var checkModules = {
             this.noFillText.characters = 10;
 
             // 空テキストパス
-            var emptyTextGroup = group.add("group");
-            emptyTextGroup.orientation = "row";
-            emptyTextGroup.alignChildren = ["left", "center"];
-            emptyTextGroup.spacing = 0;
+            var emptyTextGroup = createCountGroup(group);
 
             this.emptyTextCheckMark = createCheckMark(emptyTextGroup, true);
             this.emptyTextLabel = emptyTextGroup.add("statictext", undefined, "空のテキストパス：");
@@ -1033,38 +905,6 @@ var checkModules = {
             applyNoteStyle(noteText);
         },
 
-        // チェック実行
-        check: function () {
-            var counts = this.countUnnecessaryObjects();
-
-            // 孤立点
-            this.strayText.text = counts.strayPoints + "個";
-            this.strayCheckMark.text = counts.strayPoints === 0 ? "✓" : "✗";
-            if (counts.strayPoints > 0) {
-                this.strayText.graphics.foregroundColor = this.redPen;
-            } else {
-                this.strayText.graphics.foregroundColor = this.greenPen;
-            }
-
-            // 塗りなしオブジェクト
-            this.noFillText.text = counts.noFill + "個";
-            this.noFillCheckMark.text = counts.noFill === 0 ? "✓" : "✗";
-            if (counts.noFill > 0) {
-                this.noFillText.graphics.foregroundColor = this.redPen;
-            } else {
-                this.noFillText.graphics.foregroundColor = this.greenPen;
-            }
-
-            // 空テキストパス
-            this.emptyTextText.text = counts.emptyText + "個";
-            this.emptyTextCheckMark.text = counts.emptyText === 0 ? "✓" : "✗";
-            if (counts.emptyText > 0) {
-                this.emptyTextText.graphics.foregroundColor = this.redPen;
-            } else {
-                this.emptyTextText.graphics.foregroundColor = this.greenPen;
-            }
-
-        },
 
         // 不要なオブジェクトをカウントする処理
         countUnnecessaryObjects: function () {
@@ -1149,16 +989,10 @@ var checkModules = {
     strokeWidthCheck: {
         // UI要素
         createUI: function (parent) {
-            var group = parent.add("group");
-            group.orientation = "column";
-            group.alignChildren = ["left", "top"];
-            group.spacing = 0;
+            var group = createModuleGroup(parent);
 
             // メインラベルとカウント
-            var countGroup = group.add("group");
-            countGroup.orientation = "row";
-            countGroup.alignChildren = ["left", "center"];
-            countGroup.spacing = 0;
+            var countGroup = createCountGroup(group);
 
             this.checkMark = createCheckMark(countGroup, true);
             this.label = countGroup.add("statictext", undefined, "0.1mmより小さい線幅の線：");
@@ -1178,20 +1012,6 @@ var checkModules = {
             applyNoteStyle(this.detailText);
         },
 
-        // チェック実行
-        check: function () {
-            var result = this.checkStrokeWidth();
-            this.countText.text = result.count + "個";
-            if (result.count > 0) {
-                this.checkMark.text = "✗";
-                this.countText.graphics.foregroundColor = this.redPen;
-                this.detailText.text = result.details.join(", ");
-            } else {
-                this.checkMark.text = "✓";
-                this.countText.graphics.foregroundColor = this.greenPen;
-                this.detailText.text = "";
-            }
-        },
 
         // 線幅をチェックする処理
         checkStrokeWidth: function () {
@@ -1252,16 +1072,10 @@ var checkModules = {
     rgbLinkedImageCheck: {
         // UI要素
         createUI: function (parent) {
-            var group = parent.add("group");
-            group.orientation = "column";
-            group.alignChildren = ["left", "top"];
-            group.spacing = 0;
+            var group = createModuleGroup(parent);
 
             // メインラベルとカウント
-            var countGroup = group.add("group");
-            countGroup.orientation = "row";
-            countGroup.alignChildren = ["left", "center"];
-            countGroup.spacing = 0;
+            var countGroup = createCountGroup(group);
 
             this.checkMark = createCheckMark(countGroup, true);
             this.label = countGroup.add("statictext", undefined, "RGBリンク画像：");
@@ -1281,20 +1095,6 @@ var checkModules = {
             applyNoteStyle(this.detailText);
         },
 
-        // チェック実行
-        check: function () {
-            var result = this.checkLinkedRGBImages();
-            this.countText.text = result.count + "個";
-            if (result.count > 0) {
-                this.checkMark.text = "✗";
-                this.countText.graphics.foregroundColor = this.redPen;
-                this.detailText.text = result.details.join(", ");
-            } else {
-                this.checkMark.text = "✓";
-                this.countText.graphics.foregroundColor = this.greenPen;
-                this.detailText.text = "";
-            }
-        },
 
         // RGBリンク画像をチェックする処理
         checkLinkedRGBImages: function () {
@@ -1354,16 +1154,10 @@ var checkModules = {
     imageResolutionCheck: {
         // UI要素
         createUI: function (parent) {
-            var group = parent.add("group");
-            group.orientation = "column";
-            group.alignChildren = ["left", "top"];
-            group.spacing = 0;
+            var group = createModuleGroup(parent);
 
             // メインラベルとカウント
-            var countGroup = group.add("group");
-            countGroup.orientation = "row";
-            countGroup.alignChildren = ["left", "center"];
-            countGroup.spacing = 0;
+            var countGroup = createCountGroup(group);
 
             this.checkMark = createCheckMark(countGroup, true);
             this.label = countGroup.add("statictext", undefined, "300dpi以下の埋め込み画像：");
@@ -1383,20 +1177,6 @@ var checkModules = {
             applyNoteStyle(this.detailText);
         },
 
-        // チェック実行
-        check: function () {
-            var result = this.checkImageResolution();
-            this.countText.text = result.count + "個";
-            if (result.count > 0) {
-                this.checkMark.text = "✗";
-                this.countText.graphics.foregroundColor = this.redPen;
-                this.detailText.text = result.details.join(", ");
-            } else {
-                this.checkMark.text = "✓";
-                this.countText.graphics.foregroundColor = this.greenPen;
-                this.detailText.text = "";
-            }
-        },
 
         // 画像解像度をチェックする処理
         checkImageResolution: function () {
