@@ -395,10 +395,14 @@ var checkModules = {
                 // テキストフレームの場合は文字カラーをチェック
                 if (item.typename === "TextFrame") {
                     var textRange = item.textRange;
-                    for (var i = 0; i < textRange.length; i++) {
-                        var charColor = textRange.characters[i].fillColor;
-                        var charKey = getColorKey(charColor);
-                        colorSet[charKey] = true;
+                    var charCount = (textRange && textRange.characters) ? textRange.characters.length : 0;
+                    for (var ci = 0; ci < charCount; ci++) {
+                        var ch = textRange.characters[ci];
+                        if (ch && ch.fillColor) {
+                            var charColor = ch.fillColor;
+                            var charKey = getColorKey(charColor);
+                            colorSet[charKey] = true;
+                        }
                     }
                 }
 
@@ -574,13 +578,17 @@ var checkModules = {
                 // テキストフレームの場合は文字カラーをチェック
                 if (item.typename === "TextFrame") {
                     var textRange = item.textRange;
-                    for (var i = 0; i < textRange.length; i++) {
-                        var charColor = textRange.characters[i].fillColor;
-                        if (hasCMYKDecimal(charColor)) {
-                            var charKey = getColorKey(charColor);
-                            if (!colorSet[charKey]) {
-                                colorSet[charKey] = true;
-                                colorDetails.push(formatCMYKValue(charColor));
+                    var charCount = (textRange && textRange.characters) ? textRange.characters.length : 0;
+                    for (var ci = 0; ci < charCount; ci++) {
+                        var ch = textRange.characters[ci];
+                        if (ch && ch.fillColor) {
+                            var charColor = ch.fillColor;
+                            if (hasCMYKDecimal(charColor)) {
+                                var charKey = getColorKey(charColor);
+                                if (!colorSet[charKey]) {
+                                    colorSet[charKey] = true;
+                                    colorDetails.push(formatCMYKValue(charColor));
+                                }
                             }
                         }
                     }
@@ -629,7 +637,9 @@ var checkModules = {
             for (var i = 0; i < doc.layers.length; i++) {
                 var layer = doc.layers[i];
                 if (!layer.locked && layer.visible) {
-                    checkItemColors(layer.pageItems[0]);
+                    for (var j = 0; j < layer.pageItems.length; j++) {
+                        checkItemColors(layer.pageItems[j]);
+                    }
                 }
             }
 
@@ -758,16 +768,17 @@ var checkModules = {
             }
 
             return {
-                locked: lockedCount,
-                hidden: hiddenCount
+                lockedCount: lockedCount,
+                hiddenCount: hiddenCount
             };
         },
 
         updateUI: function (results) {
-            this.countText.text = results.lockedCount + "個";
-            this.hideText.text = results.hiddenCount + "個";
+            var lockHideResults = results.lockHideCheck || { lockedCount: 0, hiddenCount: 0 };
+            this.countText.text = lockHideResults.lockedCount + "個";
+            this.hideText.text = lockHideResults.hiddenCount + "個";
 
-            if (results.lockedCount > 0) {
+            if (lockHideResults.lockedCount > 0) {
                 this.checkMark.text = "✗";
                 this.countText.graphics.foregroundColor = this.redPen;
             } else {
@@ -775,7 +786,7 @@ var checkModules = {
                 this.countText.graphics.foregroundColor = this.greenPen;
             }
 
-            if (results.hiddenCount > 0) {
+            if (lockHideResults.hiddenCount > 0) {
                 this.hideCheckMark.text = "✗";
                 this.hideText.graphics.foregroundColor = this.redPen;
             } else {
@@ -828,7 +839,9 @@ var checkModules = {
 
                     if (item.typename === "TextFrame") {
                         // テキストフレームの場合、文字がアウトライン化されているかチェック
-                        if (item.textRange.length > 0) {
+                        var tr = item.textRange;
+                        var tc = (tr && tr.characters) ? tr.characters.length : 0;
+                        if (tc > 0) {
                             // テキストが存在する場合、アウトライン化されていないとみなす
                             textItems.push(item);
                         }
@@ -967,8 +980,12 @@ var checkModules = {
                     }
 
                     // 空テキストパスのチェック
-                    if (item.typename === "TextFrame" && item.textRange.length === 0) {
-                        emptyText++;
+                    if (item.typename === "TextFrame") {
+                        var tr = item.textRange;
+                        var tc = (tr && tr.characters) ? tr.characters.length : 0;
+                        if (tc === 0) {
+                            emptyText++;
+                        }
                     }
 
                     // グループ内のアイテムをチェック
@@ -1393,6 +1410,10 @@ function scanDocument(progress) {
     var totalSteps = doc.artboards.length + doc.layers.length;
     var currentStep = 0;
 
+    // ロック・非表示オブジェクトのカウント用変数
+    var lockedCount = 0;
+    var hiddenCount = 0;
+
     // プログレスバーの更新関数
     function updateProgress() {
         if (progress && progress.progressBar) {
@@ -1452,18 +1473,24 @@ function scanDocument(progress) {
 
         // テキストチェック
         if (item.typename === "TextFrame") {
-            if (item.textRange.length === 0) {
+            var textRange = item.textRange;
+            var charCount = (textRange && textRange.characters) ? textRange.characters.length : 0;
+            if (charCount === 0) {
                 results.emptyTextCount++;
             } else {
                 // フォントチェック
-                var textRange = item.textRange;
-                for (var i = 0; i < textRange.length; i++) {
-                    var font = textRange.characters[i].textFont;
-                    if (font) {
-                        results.fonts[font.name] = true;
+                for (var ci = 0; ci < charCount; ci++) {
+                    var ch = textRange.characters[ci];
+                    if (ch) {
+                        var font = ch.textFont;
+                        if (font) {
+                            results.fonts[font.name] = true;
+                        }
+                        // 文字色チェック
+                        if (ch.fillColor) {
+                            checkColor(ch.fillColor);
+                        }
                     }
-                    // 文字色チェック
-                    checkColor(textRange.characters[i].fillColor);
                 }
             }
         }
@@ -1520,18 +1547,24 @@ function scanDocument(progress) {
 
         // テキストチェック
         if (item.typename === "TextFrame") {
-            if (item.textRange.length === 0) {
+            var textRange = item.textRange;
+            var charCount = (textRange && textRange.characters) ? textRange.characters.length : 0;
+            if (charCount === 0) {
                 results.emptyTextCount++;
             } else {
                 // フォントチェック
-                var textRange = item.textRange;
-                for (var i = 0; i < textRange.length; i++) {
-                    var font = textRange.characters[i].textFont;
-                    if (font) {
-                        results.fonts[font.name] = true;
+                for (var ci = 0; ci < charCount; ci++) {
+                    var ch = textRange.characters[ci];
+                    if (ch) {
+                        var font = ch.textFont;
+                        if (font) {
+                            results.fonts[font.name] = true;
+                        }
+                        // 文字色チェック
+                        if (ch.fillColor) {
+                            checkColor(ch.fillColor);
+                        }
                     }
-                    // 文字色チェック
-                    checkColor(textRange.characters[i].fillColor);
                 }
             }
         }
@@ -1585,12 +1618,11 @@ function scanDocument(progress) {
         }
     }
 
+
     // RGBリンク画像チェック
     try {
         // 元のアクティブドキュメントを保存
-        var originalDoc = app.activeDocument;
-
-        for (var i = 0; i < doc.placedItems.length; i++) {
+        var originalDoc = app.activeDocument; for (var i = 0; i < doc.placedItems.length; i++) {
             var placedItem = doc.placedItems[i];
 
             if (placedItem.file && placedItem.file.exists) {
@@ -1667,10 +1699,14 @@ function main() {
         // チェックを実行
         var results = scanDocument(progress);
 
-        // プログレスバーを更新
-        progress.progressBar.value = 100;
+        // lockHideCheck の結果を設定
+        results.lockHideCheck = {
+            lockedCount: results.lockedCount,
+            hiddenCount: results.hiddenCount
+        };
 
-        // 各モジュールの結果を更新
+        // プログレスバーを更新
+        progress.progressBar.value = 100;        // 各モジュールの結果を更新
         for (var key in checkModules) {
             try {
                 if (checkModules[key] && checkModules[key].updateUI) {
