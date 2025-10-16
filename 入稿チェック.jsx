@@ -1299,6 +1299,32 @@ function createDialog() {
         var key = moduleOrder[i];
         checkModules[key].createUI(mainGroup);
 
+        // unnecessaryObjectCheckの後に「その他の確認項目」テキストを追加
+        if (key === "unnecessaryObjectCheck") {
+            // 上に罫線を追加
+            var separator = mainGroup.add("panel");
+            separator.alignment = "fill";
+            separator.height = 1;
+
+            var otherCheckGroup = mainGroup.add("group");
+            otherCheckGroup.orientation = "column";
+            otherCheckGroup.alignChildren = ["left", "top"];
+            otherCheckGroup.spacing = 4;
+            otherCheckGroup.margins = [0, 8, 0, 8];
+
+            var otherCheckTitle = otherCheckGroup.add("statictext", undefined, "その他の確認項目");
+            otherCheckTitle.graphics.font = ScriptUI.newFont("dialog", "BOLD", UI_CONSTANTS.MAIN_FONT_SIZE);
+            // 色設定を削除してデフォルトの色（グレー）を使用
+
+            var checkItem1 = otherCheckGroup.add("statictext", undefined, "・確認塗りたしはつけられているか");
+            checkItem1.graphics.font = ScriptUI.newFont("dialog", "REGULAR", UI_CONSTANTS.MAIN_FONT_SIZE);
+            // 色設定を削除してデフォルトの色（グレー）を使用
+
+            var checkItem2 = otherCheckGroup.add("statictext", undefined, "・オーバープリントプレビューで確認したか(⌘ + option + Shift + Y)");
+            checkItem2.graphics.font = ScriptUI.newFont("dialog", "REGULAR", UI_CONSTANTS.MAIN_FONT_SIZE);
+            // 色設定を削除してデフォルトの色（グレー）を使用
+        }
+
         // モジュールの間に区切り線を追加
         if (i < moduleOrder.length - 1) { // 最後のモジュールの後には追加しない
             var separator = mainGroup.add("panel");
