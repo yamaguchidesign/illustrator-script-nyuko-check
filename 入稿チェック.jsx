@@ -232,52 +232,6 @@ var checkModules = {
         }
     },
 
-    // アートボードの小数点チェック機能
-    artboardDecimal: {
-        // UI要素
-        createUI: function (parent) {
-            var group = createModuleGroup(parent);
-
-            // メインラベルとカウント
-            var headerGroup = group.add("group");
-            headerGroup.orientation = "row";
-            headerGroup.alignChildren = ["left", "top"];
-            headerGroup.spacing = 0;  // チェックマークとタイトルと値の間隔
-
-            // チェックマーク用のテキスト
-            this.checkMark = createCheckMark(headerGroup, true);
-            this.label = headerGroup.add("statictext", undefined, "位置，サイズに小数点のあるアートボード(px)：");
-            this.resultText = headerGroup.add("statictext", undefined, "");
-            this.resultText.characters = 5;
-
-            // メインテキストのスタイルを適用
-            applyMainTextStyle(this.label);
-            applyMainTextStyle(this.resultText);
-
-            // 各種ペンを作成
-            this.redPen = this.resultText.graphics.newPen(this.resultText.graphics.PenType.SOLID_COLOR, [1, 0, 0, 1], 1);
-            this.greenPen = this.resultText.graphics.newPen(this.resultText.graphics.PenType.SOLID_COLOR, [0, 0.8, 0, 1], 1);
-
-            // 詳細表示（注釈スタイル）
-            var detailGroup = createNoteGroup(group);
-
-            this.detailText = detailGroup.add("statictext", undefined, "");
-            this.detailText.characters = 35;
-            applyNoteStyle(this.detailText);
-        },
-
-        updateUI: function (results) {
-            var hasDecimals = results.artboardDecimals.length > 0;
-            this.checkMark.text = hasDecimals ? "✗" : "✓";
-            var penColor = hasDecimals ? [1, 0, 0, 1] : [0, 0.8, 0, 1];
-            this.checkMark.graphics.foregroundColor = this.checkMark.graphics.newPen(this.checkMark.graphics.PenType.SOLID_COLOR, penColor, 1);
-
-            this.resultText.text = results.artboardDecimals.length + "個";
-            this.resultText.graphics.foregroundColor = hasDecimals ? this.redPen : this.greenPen;
-            this.detailText.text = hasDecimals ? "アートボード番号：" + results.artboardDecimals.join(", ") : "";
-        }
-    },
-
     // オブジェクト数チェック機能
     objectCount: {
         // UI要素
@@ -1317,7 +1271,6 @@ var checkModules = {
 
 var moduleOrder = [
     "documentColorModeCheck",
-    "artboardDecimal",
     "cmykDecimalCheck",
     "strokeWidthCheck",
     "rgbLinkedImageCheck",
@@ -1381,7 +1334,6 @@ function scanDocument(progress) {
         strayPoints: 0,
         noFillCount: 0,
         emptyTextCount: 0,
-        artboardDecimals: [],
         lowResImages: [],    // 300dpi以下の画像リスト
         thinStrokes: [],     // 0.1mm以下の線幅の線リスト
         rgbLinkedImages: [], // RGBリンク画像リスト
@@ -1421,20 +1373,6 @@ function scanDocument(progress) {
         }
     }
 
-    // アートボードのチェック
-    for (var i = 0; i < doc.artboards.length; i++) {
-        var artboard = doc.artboards[i];
-        var rect = artboard.artboardRect;
-
-        for (var j = 0; j < rect.length; j++) {
-            if (rect[j] % 1 !== 0) {
-                results.artboardDecimals.push(i + 1);
-                break;
-            }
-        }
-        currentStep++;
-        updateProgress();
-    }
 
     function processItem(item) {
         // オブジェクトのベースチェック
