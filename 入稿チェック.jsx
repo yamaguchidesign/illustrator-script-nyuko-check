@@ -1364,4 +1364,9 @@ function main() {
     dialog.show();
 }
 
-main();
+// テストハーネスが $.evalFile() でこのファイルを読み込む際は
+// 事前に AUTORUN=false をグローバルに定義することで main() の自動実行を止める
+// （関数・定数定義だけを取り込んで scanDocument() 等を直接呼べるようにするため）
+if (typeof AUTORUN === "undefined" || AUTORUN) {
+    main();
+}

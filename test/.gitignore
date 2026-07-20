@@ -1,0 +1,6 @@
+# テスト実行のたびに変わる生成物・ログは追跡しない
+result.txt
+result_prev.txt
+osascript.log
+*.log
+_tmp_*
